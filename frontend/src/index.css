@@ -1,0 +1,483 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom scrollbar */
+@layer utilities {
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    @apply bg-gray-100 dark:bg-gray-800;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 dark:bg-gray-600 rounded-full;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-400 dark:bg-gray-500;
+  }
+}
+
+/* Dark mode transitions */
+* {
+  @apply transition-colors duration-200;
+}
+
+/* Quill editor image resizing */
+.ql-editor img {
+  cursor: pointer;
+  max-width: 100%;
+  height: auto;
+}
+
+.ql-editor img:hover {
+  outline: 2px solid #4299e1;
+  outline-offset: 2px;
+}
+
+.ql-editor img.resizing {
+  outline: 2px solid #4299e1;
+  outline-offset: 2px;
+}
+
+/* Custom font families */
+.ql-font-arial {
+  font-family: Arial, sans-serif;
+}
+
+.ql-font-times-new-roman {
+  font-family: 'Times New Roman', Times, serif;
+}
+
+.ql-font-calibri {
+  font-family: Calibri, sans-serif;
+}
+
+.ql-font-georgia {
+  font-family: Georgia, serif;
+}
+
+.ql-font-comic-sans {
+  font-family: 'Comic Sans MS', cursive;
+}
+
+.ql-font-courier-new {
+  font-family: 'Courier New', monospace;
+}
+
+.ql-font-verdana {
+  font-family: Verdana, sans-serif;
+}
+
+/* Custom font sizes */
+.ql-size-8px {
+  font-size: 8px;
+}
+
+.ql-size-10px {
+  font-size: 10px;
+}
+
+.ql-size-12px {
+  font-size: 12px;
+}
+
+.ql-size-14px {
+  font-size: 14px;
+}
+
+.ql-size-16px {
+  font-size: 16px;
+}
+
+.ql-size-18px {
+  font-size: 18px;
+}
+
+.ql-size-20px {
+  font-size: 20px;
+}
+
+.ql-size-24px {
+  font-size: 24px;
+}
+
+.ql-size-28px {
+  font-size: 28px;
+}
+
+.ql-size-32px {
+  font-size: 32px;
+}
+
+.ql-size-36px {
+  font-size: 36px;
+}
+
+.ql-size-48px {
+  font-size: 48px;
+}
+
+.ql-size-72px {
+  font-size: 72px;
+}
+
+/* Better table styling - Enhanced for visibility */
+.ql-editor table,
+.ql-editor .quill-better-table,
+table.quill-better-table {
+  display: table !important;
+  border-collapse: collapse !important;
+  width: 100% !important;
+  margin: 10px 0 !important;
+  table-layout: fixed !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.ql-editor table td,
+.ql-editor table th,
+.ql-editor .quill-better-table td,
+.ql-editor .quill-better-table th,
+table.quill-better-table td,
+table.quill-better-table th {
+  display: table-cell !important;
+  border: 1px solid #000 !important;
+  padding: 8px !important;
+  min-width: 50px !important;
+  min-height: 30px !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.ql-editor table tr,
+.ql-editor .quill-better-table tr,
+table.quill-better-table tr {
+  display: table-row !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.ql-editor table tbody,
+.ql-editor .quill-better-table tbody,
+table.quill-better-table tbody {
+  display: table-row-group !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.ql-editor table tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.ql-editor table tr:hover {
+  background-color: #f5f5f5;
+}
+
+.ql-editor table th {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  text-align: left;
+  background-color: #4299e1;
+  color: white;
+  font-weight: bold;
+}
+
+/* Table wrapper - ensure visibility */
+.quill-better-table-wrapper {
+  display: block !important;
+  overflow-x: auto !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  width: 100% !important;
+}
+
+/* Table column tools */
+.qlbt-col-tool {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Table operation menu */
+.qlbt-operation-menu {
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  padding: 4px 0;
+  z-index: 1000;
+}
+
+.qlbt-operation-menu-item {
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.qlbt-operation-menu-item:hover {
+  background-color: #f0f0f0;
+}
+
+/* Dark mode table support */
+.dark .ql-editor table td,
+.dark .ql-editor table th,
+.dark .ql-editor .quill-better-table td,
+.dark .ql-editor .quill-better-table th,
+.dark table.quill-better-table td,
+.dark table.quill-better-table th {
+  border-color: #4a5568 !important;
+  color: #e5e7eb;
+}
+
+.dark .ql-editor table tr:nth-child(even) {
+  background-color: #2d3748;
+}
+
+.dark .ql-editor table tr:hover {
+  background-color: #374151;
+}
+
+.dark .qlbt-operation-menu {
+  background-color: #1f2937;
+  border-color: #4a5568;
+  color: #e5e7eb;
+}
+
+.dark .qlbt-operation-menu-item:hover {
+  background-color: #374151;
+}
+
+/* Superscript and subscript */
+.ql-editor sup {
+  vertical-align: super;
+  font-size: smaller;
+}
+
+.ql-editor sub {
+  vertical-align: sub;
+  font-size: smaller;
+}
+
+/* Custom dropdown labels for font and size - Override Quill's ::before with data-label */
+.ql-snow .ql-picker.ql-font .ql-picker-label::before,
+.ql-snow.ql-toolbar .ql-picker.ql-font .ql-picker-label::before {
+  content: attr(data-label) !important;
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-item::before,
+.ql-snow.ql-toolbar .ql-picker.ql-font .ql-picker-item::before {
+  content: attr(data-label) !important;
+}
+
+.ql-snow .ql-picker.ql-size .ql-picker-label::before,
+.ql-snow.ql-toolbar .ql-picker.ql-size .ql-picker-label::before {
+  content: attr(data-label) !important;
+}
+
+.ql-snow .ql-picker.ql-size .ql-picker-item::before,
+.ql-snow.ql-toolbar .ql-picker.ql-size .ql-picker-item::before {
+  content: attr(data-label) !important;
+}
+
+/* Page Break Styling */
+.page-break {
+  margin: 20px 0;
+  padding: 10px;
+  background: #f0f0f0;
+  border: 2px dashed #999;
+  border-radius: 4px;
+  text-align: center;
+  cursor: default;
+  user-select: none;
+}
+
+.page-break-line {
+  border: none;
+  border-top: 2px solid #666;
+  margin: 5px 0;
+}
+
+.page-break-text {
+  display: inline-block;
+  padding: 5px 15px;
+  background: #666;
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  border-radius: 3px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Section Break Styling */
+.section-break {
+  margin: 15px 0;
+  padding: 8px;
+  background: #e8f4f8;
+  border: 2px dashed #4299e1;
+  border-radius: 4px;
+  text-align: center;
+  cursor: default;
+  user-select: none;
+}
+
+.section-break-line {
+  border: none;
+  border-top: 2px solid #4299e1;
+  margin: 5px 0;
+}
+
+.section-break-text {
+  display: inline-block;
+  padding: 5px 15px;
+  background: #4299e1;
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  border-radius: 3px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Custom Toolbar Button Icons */
+.ql-snow .ql-toolbar button.ql-pageBreak::before,
+.ql-snow.ql-toolbar button.ql-pageBreak::before {
+  content: '📄' !important;
+  font-size: 18px !important;
+  line-height: 1 !important;
+}
+
+.ql-snow .ql-toolbar button.ql-sectionBreak::before,
+.ql-snow.ql-toolbar button.ql-sectionBreak::before {
+  content: '📑' !important;
+  font-size: 18px !important;
+  line-height: 1 !important;
+}
+
+.ql-snow .ql-toolbar button.ql-findReplace::before,
+.ql-snow.ql-toolbar button.ql-findReplace::before {
+  content: '🔍' !important;
+  font-size: 18px !important;
+  line-height: 1 !important;
+}
+
+/* Ensure custom buttons are visible */
+.ql-snow .ql-toolbar button.ql-pageBreak,
+.ql-snow .ql-toolbar button.ql-sectionBreak,
+.ql-snow .ql-toolbar button.ql-findReplace {
+  width: 28px !important;
+  height: 24px !important;
+}
+
+/* Tooltip for custom buttons */
+.ql-snow .ql-toolbar button.ql-pageBreak {
+  position: relative;
+}
+
+.ql-snow .ql-toolbar button.ql-pageBreak:hover::after {
+  content: 'Page Break';
+  position: absolute;
+  bottom: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #333;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 1000;
+}
+
+.ql-snow .ql-toolbar button.ql-sectionBreak:hover::after {
+  content: 'Section Break';
+  position: absolute;
+  bottom: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #333;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 1000;
+}
+
+.ql-snow .ql-toolbar button.ql-findReplace:hover::after {
+  content: 'Find & Replace (Ctrl+F)';
+  position: absolute;
+  bottom: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #333;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 1000;
+}
+
+/* Find/Replace highlight colors */
+.ql-editor .find-match {
+  background-color: #ffeb3b !important;
+}
+
+.ql-editor .find-active {
+  background-color: #ff9632 !important;
+}
+
+/* Toolbar Button Tooltips */
+.ql-toolbar button[title],
+.ql-toolbar .ql-picker-label[title] {
+  position: relative;
+}
+
+.ql-toolbar button[title]:hover::after,
+.ql-toolbar .ql-picker-label[title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  bottom: -35px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #333;
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 10000;
+  pointer-events: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.ql-toolbar button[title]:hover::before,
+.ql-toolbar .ql-picker-label[title]:hover::before {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 0 6px 6px 6px;
+  border-style: solid;
+  border-color: transparent transparent #333 transparent;
+  z-index: 10001;
+  pointer-events: none;
+}
+
+/* Dark mode tooltip support */
+.dark .ql-toolbar button[title]:hover::after,
+.dark .ql-toolbar .ql-picker-label[title]:hover::after {
+  background-color: #1f2937;
+  color: #f3f4f6;
+}
+
+.dark .ql-toolbar button[title]:hover::before,
+.dark .ql-toolbar .ql-picker-label[title]:hover::before {
+  border-color: transparent transparent #1f2937 transparent;
+}
