@@ -208,7 +208,7 @@ Before you begin, ensure you have the following installed:
 
 ## 🚀 Installation
 
-### Step 1: Clone the Repository
+### Clone the Repository
 
 ```bash
 git clone <repository-url>
@@ -216,124 +216,6 @@ cd academic-blog-platform
 ```
 
 Or download and extract the ZIP file.
-
-### Step 2: Install Backend Dependencies
-
-```bash
-cd backend
-npm install
-```
-
-**Expected output**: All backend dependencies installed successfully.
-
-### Step 3: Install Frontend Dependencies
-
-The frontend uses several academic editor packages. Install them with:
-
-```bash
-cd ../frontend
-npm install
-```
-
-**Note**: If you encounter peer dependency warnings, you can safely ignore them or use `npm install --legacy-peer-deps`.
-
-#### Required Frontend Packages
-
-The following packages are essential for the academic editor:
-
-```bash
-# Core packages (should be in package.json)
-npm install react@^18.3.1 react-dom@^18.3.1
-npm install react-router-dom@^7.9.4
-npm install axios@^1.12.2
-npm install react-toastify@^11.0.5
-
-# Academic editor packages (install manually if not present)
-npm install quill@^2.0.3
-npm install quill-better-table@^1.2.10
-npm install katex@^0.16.25
-npm install html2pdf.js@^0.12.1
-npm install docx@^9.5.1
-npm install file-saver@^2.0.5
-```
-
-### Step 4: Configure Environment Variables
-
-#### Backend Environment (.env)
-
-Create a `.env` file in the `backend` directory with the following content:
-
-```env
-# Server Configuration
-PORT=5000
-NODE_ENV=development
-
-# Database Configuration
-MONGODB_URI=mongodb://localhost:27017/academic-blog
-
-# JWT Configuration
-JWT_SECRET=your_super_secret_jwt_key_change_this_in_production_min_32_chars
-JWT_EXPIRE=7d
-
-# Cloudinary Configuration (Optional - for cloud image storage)
-# If not provided, images will be stored locally in backend/uploads/
-CLOUDINARY_CLOUD_NAME=your_cloud_name
-CLOUDINARY_API_KEY=your_api_key
-CLOUDINARY_API_SECRET=your_api_secret
-
-# Frontend URL (for CORS)
-FRONTEND_URL=http://localhost:5173
-```
-
-**Important Notes**:
-- Change `JWT_SECRET` to a strong, random string (minimum 32 characters)
-- Cloudinary is optional; the app uses local file storage by default
-- Keep `.env` file secure and never commit it to version control
-
-#### Frontend Environment (.env)
-
-Create a `.env` file in the `frontend` directory:
-
-```env
-# Backend API URL
-VITE_API_URL=http://localhost:5000/api
-```
-
-### Step 5: Create Upload Directory
-
-Create the uploads directory for local image storage:
-
-```bash
-# From the project root
-mkdir -p backend/uploads
-```
-
-On Windows:
-```cmd
-mkdir backend\uploads
-```
-
-### Step 6: Seed Default Admin Account
-
-```bash
-cd backend
-npm run seed
-```
-
-**Expected output**:
-```
-MongoDB Connected: localhost
-Admin user created successfully
-Database seeded successfully!
-```
-
-This creates the default admin account:
-- **Email**: `admin@academic.com`
-- **Password**: `Admin@123`
-
-**⚠️ Important**: Change the admin password after first login in production!
-
-## 🏃 Running the Application
 
 ### Step 1: Start MongoDB
 
