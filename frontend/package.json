@@ -11,6 +11,12 @@
   },
   "dependencies": {
     "axios": "^1.12.2",
+    "docx": "^9.5.1",
+    "file-saver": "^2.0.5",
+    "html2pdf.js": "^0.12.1",
+    "katex": "^0.16.25",
+    "quill": "^2.0.3",
+    "quill-better-table": "^1.2.10",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-quill": "^2.0.0",
