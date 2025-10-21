@@ -1046,23 +1046,3 @@ npm install quill@1.3.7
 **This is normal** and does not affect functionality.
 
 ---
-
-## 📝 License
-
-This project is open source and available under the MIT License.
-
-## 👥 Contributors
-
-- Your Name / Team Name
-
-## 📧 Support
-
-For issues, questions, or contributions:
-- **Create an issue** in the GitHub repository
-- **Email**: your-email@example.com
-- **Documentation**: Refer to this README for setup and troubleshooting
-
----
-
-**Made with ❤️ for Academic Writing and Collaboration**
-
