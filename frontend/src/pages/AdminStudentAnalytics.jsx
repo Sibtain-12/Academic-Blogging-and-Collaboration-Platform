@@ -1,27 +1,39 @@
 import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { adminAPI } from '../services/api';
 import { toast } from 'react-toastify';
 
 export default function AdminStudentAnalytics() {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [analytics, setAnalytics] = useState([]);
   const [filteredAnalytics, setFilteredAnalytics] = useState([]);
   const [loading, setLoading] = useState(true);
   const [sortOrder, setSortOrder] = useState('desc'); // 'asc' or 'desc'
-  
-  // Filter states
-  const [selectedTag, setSelectedTag] = useState('');
-  const [selectedProject, setSelectedProject] = useState('');
+
+  // Filter states - initialize from URL query parameters
+  const [selectedTag, setSelectedTag] = useState(() => searchParams.get('tag') || '');
+  const [selectedProject, setSelectedProject] = useState(() => searchParams.get('project') || '');
   const [availableTags, setAvailableTags] = useState([]);
   const [availableProjects, setAvailableProjects] = useState([]);
 
   useEffect(() => {
-    fetchAnalytics();
+    // Fetch analytics with filters from URL on component mount
+    const tag = searchParams.get('tag') || '';
+    const project = searchParams.get('project') || '';
+    setSelectedTag(tag);
+    setSelectedProject(project);
+    fetchAnalytics(tag, project);
   }, []);
 
-  const fetchAnalytics = async () => {
+  const fetchAnalytics = async (tag = '', project = '') => {
     try {
       setLoading(true);
-      const response = await adminAPI.getStudentAnalytics();
+      const params = {};
+      if (tag) params.tag = tag;
+      if (project) params.project = project;
+
+      const response = await adminAPI.getStudentAnalytics(params);
       setAnalytics(response.data.data);
       setFilteredAnalytics(response.data.data);
       setAvailableTags(response.data.filters.tags);
@@ -34,35 +46,23 @@ export default function AdminStudentAnalytics() {
     }
   };
 
-  // Apply filters
+  // Apply filters - fetch from backend when filters change
   useEffect(() => {
-    let filtered = [...analytics];
+    fetchAnalytics(selectedTag, selectedProject);
+  }, [selectedTag, selectedProject]);
 
-    // Filter by tag
-    if (selectedTag) {
-      filtered = filtered.filter(student => 
-        student.tags.includes(selectedTag)
-      );
-    }
-
-    // Filter by project
-    if (selectedProject) {
-      filtered = filtered.filter(student => 
-        student.projects.includes(selectedProject)
-      );
-    }
-
-    // Sort by total blogs
-    filtered.sort((a, b) => {
+  // Sort filtered analytics
+  useEffect(() => {
+    let sorted = [...filteredAnalytics];
+    sorted.sort((a, b) => {
       if (sortOrder === 'desc') {
         return b.totalBlogs - a.totalBlogs;
       } else {
         return a.totalBlogs - b.totalBlogs;
       }
     });
-
-    setFilteredAnalytics(filtered);
-  }, [selectedTag, selectedProject, sortOrder, analytics]);
+    setFilteredAnalytics(sorted);
+  }, [sortOrder]);
 
   const toggleSortOrder = () => {
     setSortOrder(prev => prev === 'desc' ? 'asc' : 'desc');
@@ -71,6 +71,15 @@ export default function AdminStudentAnalytics() {
   const clearFilters = () => {
     setSelectedTag('');
     setSelectedProject('');
+  };
+
+  const handleStudentClick = (studentId) => {
+    // Navigate to student detail view with filter context
+    const filterParams = new URLSearchParams();
+    if (selectedTag) filterParams.append('tag', selectedTag);
+    if (selectedProject) filterParams.append('project', selectedProject);
+
+    navigate(`/admin/student/${studentId}/blogs?${filterParams.toString()}`);
   };
 
   if (loading) {
@@ -184,7 +193,11 @@ export default function AdminStudentAnalytics() {
               </thead>
               <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                 {filteredAnalytics.map((student) => (
-                  <tr key={student.studentId} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                  <tr
+                    key={student.studentId}
+                    className="hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors"
+                    onClick={() => handleStudentClick(student.studentId)}
+                  >
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-10 w-10 bg-blue-600 rounded-full flex items-center justify-center">

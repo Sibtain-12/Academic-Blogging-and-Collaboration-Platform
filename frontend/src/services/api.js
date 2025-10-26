@@ -28,6 +28,7 @@ export const authAPI = {
   login: (credentials) => api.post('/auth/login', credentials),
   register: (userData) => api.post('/auth/register', userData),
   getMe: () => api.get('/auth/me'),
+  changePassword: (passwordData) => api.put('/auth/change-password', passwordData),
 };
 
 // Users API
@@ -72,7 +73,8 @@ export const uploadAPI = {
 
 // Admin API
 export const adminAPI = {
-  getStudentAnalytics: () => api.get('/admin/student-analytics'),
+  getStudentAnalytics: (params) => api.get('/admin/student-analytics', { params }),
+  getStudentBlogs: (studentId, params) => api.get(`/admin/student/${studentId}/blogs`, { params }),
 };
 
 export default api;
