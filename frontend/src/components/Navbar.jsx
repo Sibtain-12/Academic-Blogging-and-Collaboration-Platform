@@ -1,11 +1,14 @@
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import ChangePasswordModal from './ChangePasswordModal';
 
 export default function Navbar() {
   const { user, logout, isAdmin } = useAuth();
   const { darkMode, toggleDarkMode } = useTheme();
   const navigate = useNavigate();
+  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -50,7 +53,7 @@ export default function Navbar() {
                     Manage Students
                   </Link>
                   <Link
-                    to="/admin/analytics"
+                    to="/admin/student-analytics"
                     className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 px-3 py-2 rounded-md text-sm font-medium"
                   >
                     Student Analytics
@@ -81,6 +84,13 @@ export default function Navbar() {
                 <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">{user?.role}</p>
               </div>
               <button
+                onClick={() => setShowChangePasswordModal(true)}
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg"
+                title="Change your password"
+              >
+                Change Password
+              </button>
+              <button
                 onClick={handleLogout}
                 className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg"
               >
@@ -90,6 +100,12 @@ export default function Navbar() {
           </div>
         </div>
       </div>
+
+      {/* Change Password Modal */}
+      <ChangePasswordModal
+        isOpen={showChangePasswordModal}
+        onClose={() => setShowChangePasswordModal(false)}
+      />
     </nav>
   );
 }
