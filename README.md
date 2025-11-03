@@ -1,930 +1,591 @@
 # Academic Blogging and Collaboration Platform
 
-A comprehensive full-stack web application designed for academic writing and collaboration. Enables professors (Admin) and students to create, share, and comment on academic documents with advanced formatting capabilities including LaTeX formulas, tables, custom fonts, and export to PDF/Word.
+A full-stack web application for creating, editing, and collaborating on academic blog posts with rich text editing, mathematical equation support, and multi-format export capabilities.
 
-Built with React, Node.js, Express, and MongoDB.
+## 🎯 Project Overview
 
-## 📋 Table of Contents
+The Academic Blogging and Collaboration Platform is a modern web application designed for academics and researchers to:
+- Create and publish blog posts with rich formatting
+- Collaborate with other users on academic content
+- Include mathematical equations and complex formatting
+- Upload and manage images in the cloud
+- Export blog posts to PDF and Word formats
+- Manage drafts and published content
 
-- [Project Overview](#project-overview)
-- [Features](#features)
-- [Technology Stack](#technology-stack)
-- [Prerequisites](#prerequisites)
-- [Installation](#installation)
-- [Running the Application](#running-the-application)
-- [Default Admin Credentials](#default-admin-credentials)
-- [Project Structure](#project-structure)
-- [API Documentation](#api-documentation)
-- [Environment Variables](#environment-variables)
-- [Known Issues](#known-issues)
-- [Recent Changes](#recent-changes)
-- [Deployment](#deployment)
-- [Troubleshooting](#troubleshooting)
+---
 
-## 🎓 Project Overview
+## ✨ Key Features
 
-The Academic Blogging and Collaboration Platform is a sophisticated web application tailored for academic writing. It provides a rich text editor with advanced features specifically designed for academic content creation, including:
+### 📝 Blog Management
+- **Rich Text Editing**: Quill editor with full formatting support (bold, italic, underline, lists, etc.)
+- **Draft & Publish**: Save drafts and publish when ready
+- **Edit Published Blogs**: Modify published content anytime
+- **Blog Metadata**: Add title, project, tags, and descriptions
 
-- **Advanced Text Formatting**: 7 custom fonts, 13 font sizes, superscript/subscript for citations
-- **Mathematical Equations**: LaTeX formula support via KaTeX
-- **Tables**: Full table support with insert, delete, merge operations via quill-better-table
-- **Document Export**: Export to PDF and Word (.docx) formats
-- **Collaboration**: Comments system for peer review and discussion
-- **Role-Based Access**: Separate dashboards and permissions for admins and students
-- **Document Management**: Draft/publish workflow, auto-save, tags, and project categorization
+### 🧮 Mathematical Support
+- **KaTeX Integration**: Full LaTeX equation support
+- **Inline & Block Equations**: Display equations inline or as blocks
+- **Equation Rendering**: Beautiful mathematical formula rendering
 
-## ✨ Features
+### 🖼️ Image Management
+- **AWS S3 Upload**: Upload images directly to AWS S3
+- **Image Embedding**: Insert images into blog content
+- **Cloud Storage**: All images stored securely in AWS S3
 
-### 🔐 Authentication & Authorization
-- JWT-based authentication with secure token management
-- Role-based access control (Admin and Student roles)
-- Admin-only student registration
-- Protected routes and API endpoints
-- Session persistence with localStorage
+### 📤 Export Functionality
+- **PDF Export**: Export blog posts to PDF with formatting and images
+- **Word Export**: Export to .docx format with full formatting
+- **Table Support**: Export tables with proper formatting
+- **Image Preservation**: Images embedded in exported files
 
-### 📝 Advanced Academic Editor
-The platform features a comprehensive academic writing editor with:
+### 👥 User Features
+- **User Authentication**: Secure login and registration
+- **User Profiles**: Manage user information
+- **Collaboration**: Share and collaborate on blog posts
 
-#### Text Formatting
-- **Custom Fonts**: Arial, Times New Roman, Calibri, Georgia, Comic Sans, Courier New, Verdana
-- **Custom Sizes**: 13 size options from 8px to 72px
-- **Text Styles**: Bold, italic, underline, strikethrough
-- **Superscript/Subscript**: Essential for citations, footnotes, and chemical formulas
-- **Colors**: Text color and background highlighting
-- **Alignment**: Left, center, right, justify
+---
 
-#### Academic Features
-- **LaTeX Formulas**: Mathematical equation support via KaTeX integration
-- **Tables**: Full table support with quill-better-table
-  - Insert/delete rows and columns
-  - Merge/unmerge cells
-  - Right-click context menu for table operations
-- **Code Blocks**: Syntax highlighting for code snippets
-- **Blockquotes**: For citations and references
-- **Lists**: Multi-level numbered and bullet lists with indentation
+## 🛠️ Tech Stack
 
-#### Document Tools
-- **Page Breaks**: Insert page breaks for document structure
-- **Section Breaks**: Separate document sections
-- **Find & Replace**: Search and replace text with case-sensitive option (Ctrl+F)
-- **Image Upload**: Upload and insert images with resizing capability
-- **Links & Media**: Insert hyperlinks, images, videos
-- **Document Statistics**: Real-time word count, character count, and reading time
+### Frontend
+- **React 18**: Modern UI framework
+- **Vite**: Fast build tool and dev server
+- **Quill 2.0.3**: Rich text editor
+- **quill-better-table 1.2.10**: Table support for Quill
+- **KaTeX 0.16.25**: LaTeX equation rendering
+- **html2pdf.js 0.12.1**: HTML to PDF conversion
+- **docx 9.5.1**: Word document generation
+- **file-saver 2.0.5**: File download functionality
+- **Axios**: HTTP client for API requests
+- **React Router**: Client-side routing
+- **Tailwind CSS**: Utility-first CSS framework
 
-#### Export Functionality
-- **Export to PDF**: Generate PDF documents with html2pdf.js
-- **Export to Word**: Create .docx files with proper formatting via docx library
-- Preserve formatting, images, and structure in exports
+### Backend
+- **Node.js**: JavaScript runtime
+- **Express 5.1.0**: Web framework
+- **MongoDB**: NoSQL database
+- **Mongoose**: MongoDB ODM
+- **AWS SDK v2**: AWS S3 integration
+- **JWT**: Authentication tokens
+- **bcryptjs**: Password hashing
+- **dotenv**: Environment variable management
 
-### 📚 Blog Management
-- Draft and publish workflow
-- Auto-save feature (every 30 seconds)
-- Tags and project categorization
-- Edit and delete own blogs
-- Search and filter blogs by author, project, tags, date range, and keywords
-- Image upload with local file storage
+### Cloud & Storage
+- **AWS S3**: Cloud image storage
+- **AWS SDK v2**: S3 client library
 
-### 💬 Comments System
-- Add comments on published blogs
-- Delete own comments
-- Blog authors can delete comments on their blogs
-- Admin can delete any comment
-- Real-time comment count display
+---
 
-### 📊 Dashboard
-- **Admin Dashboard**:
-  - Total blogs, comments, and students count
-  - Recent blogs overview
-  - System-wide statistics
-- **Student Dashboard**:
-  - Personal blog count
-  - Comments received on own blogs
-  - List of own blogs with status
-  - Personal statistics
-
-### 🎨 Additional Features
-- Light/Dark mode toggle with persistence
-- Fully responsive design (mobile, tablet, desktop)
-- Toast notifications for all actions
-- Loading states and error handling
-- Confirmation dialogs for destructive actions
-- Keyboard shortcuts (Ctrl+S for save, Ctrl+F for find)
-
-## 🛠 Technology Stack
-
-### Frontend Technologies
-
-#### Core Framework
-- **React**: v18.3.1 - Modern UI library with hooks
-- **Vite**: v5.4.11 - Fast build tool and dev server
-- **React Router DOM**: v7.9.4 - Client-side routing
-
-#### Styling
-- **Tailwind CSS**: v3.4.1 - Utility-first CSS framework
-- **PostCSS**: v8.5.6 - CSS processing
-- **Autoprefixer**: v10.4.21 - CSS vendor prefixing
-
-#### Rich Text Editor & Academic Features
-- **Quill**: v2.0.3 - Core rich text editor (vanilla implementation)
-- **quill-better-table**: v1.2.10 - Advanced table support
-- **KaTeX**: v0.16.25 - LaTeX mathematical formula rendering
-- **html2pdf.js**: v0.12.1 - PDF export functionality
-- **docx**: v9.5.1 - Word document (.docx) generation
-- **file-saver**: v2.0.5 - File download utility
-
-#### State & HTTP
-- **React Context API**: Global state management (Auth, Theme)
-- **Axios**: v1.12.2 - HTTP client for API requests
-- **React Toastify**: v11.0.5 - Toast notifications
-
-#### Development Tools
-- **ESLint**: v9.38.0 - Code linting
-- **@vitejs/plugin-react**: v4.3.4 - React support for Vite
-
-### Backend Technologies
-
-#### Core Framework
-- **Node.js**: v18.17.1+ - JavaScript runtime
-- **Express.js**: v5.1.0 - Web application framework
-- **Mongoose**: v8.19.1 - MongoDB ODM
-
-#### Authentication & Security
-- **jsonwebtoken**: v9.0.2 - JWT token generation and verification
-- **bcryptjs**: v3.0.2 - Password hashing
-- **express-rate-limit**: v8.1.0 - Rate limiting middleware
-- **cors**: v2.8.5 - Cross-origin resource sharing
-
-#### File Upload & Storage
-- **Multer**: v2.0.2 - Multipart form data handling
-- **Cloudinary**: v2.7.0 - Cloud image storage (optional)
-- **Local File Storage**: Images stored in `backend/uploads/` directory
-
-#### Validation & Utilities
-- **express-validator**: v7.2.1 - Request validation
-- **dotenv**: v17.2.3 - Environment variable management
-
-#### Development Tools
-- **nodemon**: v3.1.10 - Auto-restart on file changes
-
-### Database
-- **MongoDB**: v4.4+ - NoSQL document database
-- **Mongoose ODM**: Schema-based data modeling
-
-### Key Library Versions Summary
-
-| Package | Version | Purpose |
-|---------|---------|---------|
-| React | 18.3.1 | UI Framework |
-| Quill | 2.0.3 | Rich Text Editor (Vanilla) |
-| quill-better-table | 1.2.10 | Table Support |
-| KaTeX | 0.16.25 | LaTeX Formulas |
-| html2pdf.js | 0.12.1 | PDF Export |
-| docx | 9.5.1 | Word Export |
-| Express | 5.1.0 | Backend Framework |
-| Mongoose | 8.19.1 | MongoDB ODM |
-| JWT | 9.0.2 | Authentication |
-
-## 📦 Prerequisites
+## 📋 Prerequisites
 
 Before you begin, ensure you have the following installed:
 
-- **Node.js** (v18.17.1 or higher, v20+ recommended) - [Download](https://nodejs.org/)
-  - **Note**: The application works with Node.js v18.17.1 but some packages show compatibility warnings. For best experience, use Node.js v20+
-  - Verify installation: `node --version`
+- **Node.js** (v14 or higher)
+- **npm** (v6 or higher) or **yarn**
+- **MongoDB** (v4.4 or higher) - local or cloud instance
+- **AWS Account** with S3 bucket created
+- **Git** for version control
 
-- **MongoDB** (v4.4 or higher) - [Download](https://www.mongodb.com/try/download/community)
-  - Can be installed locally or use MongoDB Atlas (cloud)
-  - Verify installation: `mongod --version`
+---
 
-- **npm** (v10.1.0 or higher) - Comes with Node.js
-  - Verify installation: `npm --version`
+## 🚀 Installation Instructions
 
-- **Git** (optional, for cloning) - [Download](https://git-scm.com/)
-
-### System Requirements
-- **OS**: Windows 10+, macOS 10.15+, or Linux
-- **RAM**: 4GB minimum, 8GB recommended
-- **Disk Space**: 500MB for dependencies and uploads
-
-## 🚀 Installation
-
-### Clone the Repository
+### Step 1: Clone the Repository
 
 ```bash
 git clone <repository-url>
-cd academic-blog-platform
+cd <project-directory>
 ```
 
-Or download and extract the ZIP file.
+### Step 2: Backend Setup
 
-### Step 1: Start MongoDB
-
-Ensure MongoDB is running on your system:
-
-**Windows (if installed as service)**:
-```cmd
-net start MongoDB
-```
-
-**Windows (manual start)**:
-```cmd
-mongod
-```
-
-**macOS/Linux**:
-```bash
-# Using Homebrew (macOS)
-brew services start mongodb-community
-
-# Or manual start
-mongod
-```
-
-**Verify MongoDB is running**:
-```bash
-# Should connect successfully
-mongosh
-# or
-mongo
-```
-
-### Step 2: Start Backend Server
-
-Open a terminal and navigate to the backend directory:
-
+#### 2.1 Navigate to Backend Directory
 ```bash
 cd backend
-npm run dev
 ```
 
-**Expected output**:
-```
-Server running on port 5000
-MongoDB Connected: localhost
-```
-
-The backend server will be available at `http://localhost:5000`
-
-**Available backend scripts**:
-- `npm run dev` - Start with nodemon (auto-restart on changes)
-- `npm start` - Start in production mode
-- `npm run seed` - Seed database with admin user
-
-### Step 3: Start Frontend Development Server
-
-Open a **new terminal** (keep backend running) and navigate to the frontend directory:
-
+#### 2.2 Install Dependencies
 ```bash
-cd frontend
-npm run dev
+npm install
 ```
 
-**Expected output**:
-```
-VITE v5.4.11  ready in XXX ms
+#### 2.3 Create Environment File
+Create a `.env` file in the `backend` directory:
 
-➜  Local:   http://localhost:5173/
-➜  Network: use --host to expose
-```
-
-The frontend will be available at `http://localhost:5173`
-
-**Available frontend scripts**:
-- `npm run dev` - Start development server with hot reload
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
-
-### Step 4: Access the Application
-
-Open your browser and navigate to:
-```
-http://localhost:5173
-```
-
-### Step 5: Login with Admin Credentials
-
-Use the default admin credentials to log in:
-- **Email**: `admin@academic.com`
-- **Password**: `Admin@123`
-
-### Quick Start Summary
-
-```bash
-# Terminal 1 - Backend
-cd backend
-npm run dev
-
-# Terminal 2 - Frontend (new terminal)
-cd frontend
-npm run dev
-
-# Browser
-# Navigate to http://localhost:5173
-# Login with admin@academic.com / Admin@123
-```
-
-## 🔑 Default Admin Credentials
-
-The seeded admin account credentials are:
-
-| Field | Value |
-|-------|-------|
-| **Email** | `admin@academic.com` |
-| **Password** | `Admin@123` |
-| **Role** | Admin |
-| **Name** | Admin User |
-
-### Admin Capabilities
-
-After logging in as admin, you can:
-- ✅ **Add new students** - Register student accounts
-- ✅ **View all blogs** - Access all published and draft blogs
-- ✅ **View statistics** - System-wide analytics on admin dashboard
-- ✅ **Manage comments** - Delete any comment on any blog
-- ✅ **Manage students** - View and delete student accounts
-- ✅ **Full CRUD operations** - Create, read, update, delete all content
-
-### Creating Student Accounts
-
-1. Log in as admin
-2. Navigate to "Manage Students" from the navbar
-3. Click "Add New Student"
-4. Fill in student details (name, email, password)
-5. Student can now log in with their credentials
-
-**Note**: Only admins can create student accounts. Students cannot self-register.
-
-## 📁 Project Structure
-
-```
-academic-blog-platform/
-├── backend/                      # Node.js/Express backend
-│   ├── config/
-│   │   ├── db.js                 # MongoDB connection configuration
-│   │   └── cloudinary.js         # Cloudinary cloud storage config (optional)
-│   ├── controllers/
-│   │   ├── authController.js     # Authentication logic (login, register)
-│   │   ├── blogController.js     # Blog CRUD operations
-│   │   ├── commentController.js  # Comment operations
-│   │   ├── dashboardController.js # Dashboard statistics
-│   │   ├── uploadController.js   # Image upload handling
-│   │   └── userController.js     # User management (admin only)
-│   ├── middleware/
-│   │   ├── auth.js               # JWT verification & role checking
-│   │   ├── error.js              # Global error handling
-│   │   └── upload.js             # Multer file upload configuration
-│   ├── models/
-│   │   ├── User.js               # User schema (admin/student roles)
-│   │   ├── Blog.js               # Blog schema (title, content, tags, etc.)
-│   │   └── Comment.js            # Comment schema
-│   ├── routes/
-│   │   ├── auth.js               # Authentication routes
-│   │   ├── blogs.js              # Blog routes
-│   │   ├── comments.js           # Comment routes
-│   │   ├── dashboard.js          # Dashboard routes
-│   │   ├── upload.js             # Upload routes
-│   │   └── users.js              # User management routes
-│   ├── uploads/                  # Local image storage directory
-│   ├── utils/
-│   │   └── generateToken.js      # JWT token generation utility
-│   ├── .env                      # Environment variables (not in repo)
-│   ├── .env.example              # Environment template
-│   ├── .gitignore                # Git ignore file
-│   ├── package.json              # Backend dependencies
-│   ├── seed.js                   # Database seeder (creates admin)
-│   └── server.js                 # Express server entry point
-│
-├── frontend/                     # React/Vite frontend
-│   ├── public/                   # Static assets (favicon, etc.)
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── Layout.jsx        # Main layout wrapper with navbar
-│   │   │   ├── Navbar.jsx        # Navigation bar component
-│   │   │   ├── Loading.jsx       # Loading spinner component
-│   │   │   ├── ProtectedRoute.jsx # Route protection HOC
-│   │   │   └── FindReplaceModal.jsx # Find & Replace modal
-│   │   ├── context/
-│   │   │   ├── AuthContext.jsx   # Authentication state & methods
-│   │   │   └── ThemeContext.jsx  # Dark mode state & toggle
-│   │   ├── pages/
-│   │   │   ├── Login.jsx         # Login page
-│   │   │   ├── Home.jsx          # Blog listing with filters
-│   │   │   ├── BlogDetail.jsx    # Single blog view with comments
-│   │   │   ├── BlogEditor.jsx    # Academic editor (create/edit)
-│   │   │   ├── Dashboard.jsx     # Statistics dashboard
-│   │   │   └── ManageStudents.jsx # Admin student management
-│   │   ├── services/
-│   │   │   └── api.js            # Axios API service layer
-│   │   ├── utils/
-│   │   │   ├── helpers.js        # Utility functions
-│   │   │   └── quillCustomBlots.js # Custom Quill blots (PageBreak, SectionBreak)
-│   │   ├── App.jsx               # Main app component with routing
-│   │   ├── main.jsx              # React entry point
-│   │   └── index.css             # Global styles & Quill customizations
-│   ├── .env                      # Environment variables (not in repo)
-│   ├── .env.example              # Environment template
-│   ├── .gitignore                # Git ignore file
-│   ├── package.json              # Frontend dependencies
-│   ├── tailwind.config.js        # Tailwind CSS configuration
-│   ├── postcss.config.js         # PostCSS configuration
-│   ├── vite.config.js            # Vite build configuration
-│   ├── eslint.config.js          # ESLint configuration
-│   └── index.html                # HTML entry point
-│
-├── .gitignore                    # Root git ignore
-└── README.md                     # This documentation file
-```
-
-### Key Files Explained
-
-#### Backend
-- **`server.js`**: Express server setup, middleware, routes, MongoDB connection
-- **`seed.js`**: Creates default admin user for initial setup
-- **`models/`**: Mongoose schemas defining data structure
-- **`controllers/`**: Business logic for each feature
-- **`middleware/auth.js`**: Protects routes, verifies JWT, checks user roles
-- **`routes/`**: API endpoint definitions
-
-#### Frontend
-- **`BlogEditor.jsx`**: Advanced academic editor with Quill, tables, LaTeX, export
-- **`quillCustomBlots.js`**: Custom Quill formats (page breaks, section breaks)
-- **`index.css`**: Global styles including Quill customizations and table styling
-- **`api.js`**: Centralized API calls with Axios interceptors
-- **`AuthContext.jsx`**: Global authentication state, login/logout methods
-- **`ThemeContext.jsx`**: Dark mode state with localStorage persistence
-
-## � Environment Variables
-
-### Backend Environment Variables
-
-Create a `.env` file in the `backend` directory with these variables:
-
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `PORT` | No | 5000 | Server port number |
-| `NODE_ENV` | No | development | Environment (development/production) |
-| `MONGODB_URI` | **Yes** | - | MongoDB connection string |
-| `JWT_SECRET` | **Yes** | - | Secret key for JWT tokens (min 32 chars) |
-| `JWT_EXPIRE` | No | 7d | JWT token expiration time |
-| `CLOUDINARY_CLOUD_NAME` | No | - | Cloudinary cloud name (optional) |
-| `CLOUDINARY_API_KEY` | No | - | Cloudinary API key (optional) |
-| `CLOUDINARY_API_SECRET` | No | - | Cloudinary API secret (optional) |
-| `FRONTEND_URL` | No | http://localhost:5173 | Frontend URL for CORS |
-
-**Example `.env` file**:
 ```env
+# Server Configuration
 PORT=5000
 NODE_ENV=development
+
+# Database Configuration
 MONGODB_URI=mongodb://localhost:27017/academic-blog
-JWT_SECRET=your_super_secret_jwt_key_min_32_characters_long
+# Or for MongoDB Atlas:
+# MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/academic-blog
+
+# JWT Configuration
+JWT_SECRET=your_jwt_secret_key_here
 JWT_EXPIRE=7d
-FRONTEND_URL=http://localhost:5173
+
+# AWS S3 Configuration
+AWS_ACCESS_KEY_ID=your_aws_access_key
+AWS_SECRET_ACCESS_KEY=your_aws_secret_key
+AWS_REGION=us-east-1
+AWS_S3_BUCKET_NAME=academic-blog-images
 ```
 
-### Frontend Environment Variables
+#### 2.4 Start Backend Server
+```bash
+npm run dev
+```
 
+Expected output:
+```
+✅ AWS S3 configured successfully
+✅ S3 CORS configured successfully
+Server running on port 5000
+```
+
+### Step 3: Frontend Setup
+
+#### 3.1 Navigate to Frontend Directory
+```bash
+cd frontend
+```
+
+#### 3.2 Install Dependencies
+```bash
+npm install
+```
+
+#### 3.3 Create Environment File
 Create a `.env` file in the `frontend` directory:
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `VITE_API_URL` | **Yes** | - | Backend API base URL |
-
-**Example `.env` file**:
 ```env
 VITE_API_URL=http://localhost:5000/api
 ```
 
-**Important Notes**:
-- Never commit `.env` files to version control
-- Use `.env.example` as a template
-- Change `JWT_SECRET` to a strong random string in production
-- Cloudinary variables are optional; app uses local storage by default
+#### 3.4 Start Frontend Server
+```bash
+npm run dev
+```
+
+The application will be available at `http://localhost:5173`
 
 ---
 
-## ⚠️ Known Issues
+## 🔐 Environment Variables
 
-### 1. Package Dependency Warnings
+### Backend Environment Variables
 
-**Issue**: When running `npm list`, you may see "extraneous" warnings for academic editor packages.
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `PORT` | Server port | `5000` |
+| `NODE_ENV` | Environment | `development` |
+| `MONGODB_URI` | MongoDB connection string | `mongodb://localhost:27017/academic-blog` |
+| `JWT_SECRET` | JWT signing secret | `your_secret_key` |
+| `JWT_EXPIRE` | JWT expiration time | `7d` |
+| `AWS_ACCESS_KEY_ID` | AWS access key | From AWS IAM |
+| `AWS_SECRET_ACCESS_KEY` | AWS secret key | From AWS IAM |
+| `AWS_REGION` | AWS region | `us-east-1` |
+| `AWS_S3_BUCKET_NAME` | S3 bucket name | `academic-blog-images` |
 
-**Cause**: The `package.json` was recently reverted, but `node_modules` still contains the academic editor packages (quill, katex, html2pdf.js, docx, file-saver, quill-better-table).
+### Frontend Environment Variables
 
-**Impact**: No functional impact - the application works correctly. The packages are installed and functional.
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `VITE_API_URL` | Backend API URL | `http://localhost:5000/api` |
+
+---
+
+## 📖 Running the Application
+
+### Development Mode
+
+**Terminal 1 - Backend**:
+```bash
+cd backend
+npm run dev
+```
+
+**Terminal 2 - Frontend**:
+```bash
+cd frontend
+npm run dev
+```
+
+### Production Build
+
+**Backend**:
+```bash
+cd backend
+npm run build
+npm start
+```
+
+**Frontend**:
+```bash
+cd frontend
+npm run build
+```
+
+---
+
+## 🔧 AWS S3 CORS Configuration
+
+For image exports to work properly, AWS S3 CORS must be configured.
+
+### Automatic Configuration
+
+The backend automatically configures CORS on startup. Check the console for:
+```
+✅ S3 CORS configured successfully
+```
+
+### Manual Configuration (If Needed)
+
+1. Go to [AWS S3 Console](https://s3.console.aws.amazon.com/)
+2. Select your bucket: `academic-blog-images`
+3. Go to **Permissions** → **CORS**
+4. Click **Edit** and paste:
+
+```json
+[
+  {
+    "AllowedHeaders": ["*"],
+    "AllowedMethods": ["GET", "HEAD", "PUT", "POST", "DELETE"],
+    "AllowedOrigins": ["*"],
+    "ExposeHeaders": ["ETag", "x-amz-version-id"],
+    "MaxAgeSeconds": 3000
+  }
+]
+```
+
+5. Click **Save changes**
+
+---
+
+## 📚 Usage Guide
+
+### Creating a Blog Post
+
+1. Click **"Create New Blog"**
+2. Enter blog title
+3. Add content using the rich text editor
+4. Insert images using the image button
+5. Add mathematical equations using KaTeX syntax
+6. Click **"Save as Draft"** or **"Publish"**
+
+### Uploading Images
+
+1. Click the **image icon** in the editor toolbar
+2. Select an image from your computer
+3. Image uploads to AWS S3 automatically
+4. Image appears in the editor
+
+### Exporting to PDF
+
+1. Open a blog post
+2. Click **"PDF"** button
+3. PDF downloads with all formatting and images
+
+### Exporting to Word
+
+1. Open a blog post
+2. Click **"Word"** button
+3. Word document (.docx) downloads with formatting
+
+### Adding Mathematical Equations
+
+Use KaTeX syntax:
+- **Inline**: `$E = mc^2$`
+- **Block**: `$$\frac{-b \pm \sqrt{b^2 - 4ac}}{2a}$$`
+
+---
+
+## 🐛 Troubleshooting
+
+### Issue: Images Not Showing in PDF/Word Exports
+
+**Cause**: CORS policy blocking image requests
 
 **Solution**:
-```bash
-# Option 1: Add packages to package.json manually
-cd frontend
-npm install quill@^2.0.3 quill-better-table@^1.2.10 katex@^0.16.25 html2pdf.js@^0.12.1 docx@^9.5.1 file-saver@^2.0.5 --save
+1. Restart backend: `npm run dev`
+2. Check console for: `✅ S3 CORS configured successfully`
+3. Hard refresh frontend: `Ctrl+Shift+R`
+4. Test export again
 
-# Option 2: Ignore the warnings (packages work fine)
-```
+**Manual Fix**:
+- Configure CORS manually in AWS S3 console (see AWS S3 CORS Configuration section)
 
-### 2. React Quill Implementation
+### Issue: "AWS S3 not configured" Error
 
-**Current State**: The application uses **vanilla Quill** (not react-quill or react-quill-new).
-
-**Details**:
-- `BlogEditor.jsx` imports `Quill` directly from `'quill'`
-- Uses manual Quill initialization with `new Quill()`
-- Does NOT use the `<ReactQuill>` component
-- `package.json` lists `react-quill@^2.0.0` but it's not actually used in the code
-
-**Why**: The vanilla Quill implementation provides better control over advanced features like quill-better-table, custom blots, and module registration.
-
-**Impact**: No functional issues. All features work correctly.
-
-### 3. Table Operations with Quill v2.0.3
-
-**Potential Issue**: Some table operations may have compatibility issues with Quill v2.0.3 and quill-better-table v1.2.10.
-
-**Known Problems**:
-- Column insertion may throw errors in some cases
-- Phantom tables may appear when clicking cells
-
-**Status**: Currently working in the implemented version. If issues arise, consider downgrading to Quill v1.3.7.
-
-**Workaround**: If table issues occur:
-```bash
-cd frontend
-npm uninstall quill
-npm install quill@1.3.7
-```
-
-### 4. Node.js Version Warnings
-
-**Issue**: Some packages show "EBADENGINE" warnings with Node.js v18.17.1.
-
-**Cause**: Packages like ESLint and React Router prefer Node.js v20+.
-
-**Impact**: Warnings only - application works fine with Node.js v18.17.1.
-
-**Solution**: Upgrade to Node.js v20+ for best compatibility (optional).
-
----
-
-## 📝 Recent Changes
-
-### Latest Update: Package Reversion
-
-**Date**: Recent
-
-**Changes Made**:
-1. **Reverted `frontend/package.json`** to use `react-quill@^2.0.0`
-2. **Removed academic editor packages** from package.json (quill, katex, html2pdf.js, docx, file-saver, quill-better-table)
-3. **Reverted `BlogEditor.jsx`** to vanilla Quill implementation
-4. **Reverted `FindReplaceModal.jsx`** to work with vanilla Quill
-
-**Current State**:
-- ✅ Application uses **vanilla Quill v2.0.3** (not ReactQuill)
-- ✅ All academic editor features functional (tables, LaTeX, export, etc.)
-- ✅ Packages installed in `node_modules` but marked as "extraneous"
-- ✅ Code imports from `'quill'` directly, not `'react-quill'` or `'react-quill-new'`
-
-**Why the Reversion**:
-The project was previously using `react-quill-new` (a React wrapper for Quill), but was reverted to vanilla Quill for better control over advanced features and module registration.
-
-**Impact**:
-- No functional changes - all features work correctly
-- Package warnings in `npm list` (can be safely ignored)
-- Code uses vanilla Quill API instead of ReactQuill component
-
-### Previous Major Updates
-
-1. **Academic Editor Enhancement**: Added advanced formatting, tables, LaTeX, export features
-2. **Table Support**: Integrated quill-better-table for full table operations
-3. **Export Functionality**: Added PDF and Word export capabilities
-4. **Find & Replace**: Implemented search and replace with keyboard shortcuts
-5. **Custom Blots**: Added page breaks and section breaks
-6. **Image Resizing**: Implemented image resize handles in editor
-7. **Document Statistics**: Added real-time word count, character count, reading time
-
----
-
-## �📡 API Documentation
-
-### Authentication Endpoints
-
-| Method | Endpoint | Description | Access |
-|--------|----------|-------------|--------|
-| POST | `/api/auth/login` | User login | Public |
-| POST | `/api/auth/register` | Register new student | Admin only |
-| GET | `/api/auth/me` | Get current user | Private |
-
-### User Endpoints
-
-| Method | Endpoint | Description | Access |
-|--------|----------|-------------|--------|
-| GET | `/api/users` | Get all students | Admin only |
-| DELETE | `/api/users/:id` | Delete student | Admin only |
-
-### Blog Endpoints
-
-| Method | Endpoint | Description | Access |
-|--------|----------|-------------|--------|
-| GET | `/api/blogs` | Get all published blogs (with filters) | Private |
-| GET | `/api/blogs/:id` | Get single blog | Private |
-| POST | `/api/blogs` | Create new blog | Private |
-| PUT | `/api/blogs/:id` | Update blog | Author/Admin |
-| DELETE | `/api/blogs/:id` | Delete blog | Author/Admin |
-| GET | `/api/blogs/drafts` | Get user's draft blogs | Private |
-
-### Comment Endpoints
-
-| Method | Endpoint | Description | Access |
-|--------|----------|-------------|--------|
-| GET | `/api/comments/:blogId` | Get all comments for a blog | Private |
-| POST | `/api/comments` | Create new comment | Private |
-| DELETE | `/api/comments/:id` | Delete comment | Author/Blog Author/Admin |
-
-### Dashboard Endpoints
-
-| Method | Endpoint | Description | Access |
-|--------|----------|-------------|--------|
-| GET | `/api/dashboard/admin` | Get admin statistics | Admin only |
-| GET | `/api/dashboard/student` | Get student statistics | Private |
-
-### Upload Endpoints
-
-| Method | Endpoint | Description | Access |
-|--------|----------|-------------|--------|
-| POST | `/api/upload` | Upload image | Private |
-
-## 🚢 Deployment
-
-### Backend Deployment (Render/Railway)
-
-1. Create a new web service on [Render](https://render.com) or [Railway](https://railway.app)
-2. Connect your GitHub repository
-3. Set the following environment variables:
-   - `MONGODB_URI` (use MongoDB Atlas connection string)
-   - `JWT_SECRET`
-   - `JWT_EXPIRE`
-   - `CLOUDINARY_CLOUD_NAME`
-   - `CLOUDINARY_API_KEY`
-   - `CLOUDINARY_API_SECRET`
-   - `NODE_ENV=production`
-   - `FRONTEND_URL` (your frontend URL)
-4. Set build command: `npm install`
-5. Set start command: `npm start`
-6. Deploy!
-
-### Frontend Deployment (Vercel/Netlify)
-
-1. Create a new project on [Vercel](https://vercel.com) or [Netlify](https://netlify.com)
-2. Connect your GitHub repository
-3. Set root directory to `frontend`
-4. Set environment variable:
-   - `VITE_API_URL` (your backend URL + /api)
-5. Build command: `npm run build`
-6. Output directory: `dist`
-7. Deploy!
-
-### MongoDB Atlas Setup
-
-1. Create account on [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
-2. Create a new cluster
-3. Add database user
-4. Whitelist IP addresses (0.0.0.0/0 for all)
-5. Get connection string and use in `MONGODB_URI`
-
-## � Troubleshooting
-
-### Package Dependency Errors
-
-**Problem**: `npm list` shows "extraneous" warnings for quill, katex, html2pdf.js, docx, file-saver, quill-better-table.
+**Cause**: Missing AWS credentials in `.env`
 
 **Solution**:
-```bash
-cd frontend
-npm install quill@^2.0.3 quill-better-table@^1.2.10 katex@^0.16.25 html2pdf.js@^0.12.1 docx@^9.5.1 file-saver@^2.0.5 --save
+1. Check `.env` file has all AWS variables
+2. Verify AWS credentials are correct
+3. Restart backend
+
+### Issue: MongoDB Connection Error
+
+**Cause**: MongoDB not running or wrong connection string
+
+**Solution**:
+1. Ensure MongoDB is running
+2. Check `MONGODB_URI` in `.env`
+3. For MongoDB Atlas, verify IP whitelist includes your IP
+
+### Issue: Images Upload Fails
+
+**Cause**: AWS S3 permissions or bucket configuration
+
+**Solution**:
+1. Verify AWS credentials have S3 permissions
+2. Check bucket name is correct
+3. Ensure bucket exists in correct region
+
+---
+
+## 📝 API Endpoints
+
+### Authentication
+- `POST /api/auth/register` - Register new user
+- `POST /api/auth/login` - Login user
+- `POST /api/auth/logout` - Logout user
+
+### Blogs
+- `GET /api/blogs` - Get all blogs
+- `POST /api/blogs` - Create new blog
+- `GET /api/blogs/:id` - Get blog by ID
+- `PUT /api/blogs/:id` - Update blog
+- `DELETE /api/blogs/:id` - Delete blog
+
+### Images
+- `POST /api/upload` - Upload image to S3
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these steps:
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/your-feature`
+3. Commit changes: `git commit -m 'Add your feature'`
+4. Push to branch: `git push origin feature/your-feature`
+5. Submit a pull request
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+---
+
+## 📞 Support
+
+For issues, questions, or suggestions, please:
+1. Check the Troubleshooting section
+2. Review existing issues on GitHub
+3. Create a new issue with detailed description
+
+---
+
+## 🎉 Getting Started
+
+1. **Install dependencies** for both frontend and backend
+2. **Configure environment variables** (especially AWS S3)
+3. **Start MongoDB** (if using local instance)
+4. **Run backend**: `npm run dev` (from backend directory)
+5. **Run frontend**: `npm run dev` (from frontend directory)
+6. **Open browser**: http://localhost:5173
+7. **Create account** and start blogging!
+
+---
+
+## 📊 Project Structure
+
+```
+academic-blogging-platform/
+├── backend/
+│   ├── config/
+│   │   └── aws.js                 # AWS S3 configuration
+│   ├── controllers/
+│   │   ├── authController.js      # Authentication logic
+│   │   ├── blogController.js      # Blog CRUD operations
+│   │   └── uploadController.js    # Image upload to S3
+│   ├── models/
+│   │   ├── User.js                # User schema
+│   │   └── Blog.js                # Blog schema
+│   ├── routes/
+│   │   ├── auth.js                # Auth routes
+│   │   ├── blogs.js               # Blog routes
+│   │   └── upload.js              # Upload routes
+│   ├── middleware/
+│   │   └── auth.js                # JWT authentication
+│   ├── .env                       # Environment variables
+│   ├── .env.example               # Example env file
+│   ├── server.js                  # Express server entry point
+│   └── package.json
+│
+├── frontend/
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── BlogEditor.jsx     # Main blog editor with Quill
+│   │   │   ├── BlogList.jsx       # List of blogs
+│   │   │   └── BlogView.jsx       # Blog view page
+│   │   ├── pages/
+│   │   │   ├── Home.jsx           # Home page
+│   │   │   ├── Login.jsx          # Login page
+│   │   │   ├── Register.jsx       # Registration page
+│   │   │   └── Dashboard.jsx      # User dashboard
+│   │   ├── api/
+│   │   │   └── api.js             # API client
+│   │   ├── App.jsx                # Main app component
+│   │   └── main.jsx               # Entry point
+│   ├── .env                       # Environment variables
+│   ├── vite.config.js             # Vite configuration
+│   └── package.json
+│
+├── README.md                      # This file
+└── .gitignore
 ```
 
-Or simply ignore the warnings - the packages work fine.
-
 ---
 
-### Blog Editor Not Loading
+## 🔄 Workflow
 
-**Problem**: White screen or errors when navigating to `/write` page.
+### Blog Creation Workflow
 
-**Possible Causes & Solutions**:
-
-1. **Missing Packages**:
-   ```bash
-   cd frontend
-   npm install quill@^2.0.3 quill-better-table@^1.2.10 katex@^0.16.25
-   ```
-
-2. **Module Registration Issues**:
-   - Check browser console for errors
-   - Ensure `quillCustomBlots.js` is present in `src/utils/`
-   - Verify Quill modules are registered before component mounts
-
-3. **Import Errors**:
-   - Verify imports in `BlogEditor.jsx`:
-     ```javascript
-     import Quill from 'quill';
-     import 'quill/dist/quill.snow.css';
-     import QuillBetterTable from 'quill-better-table';
-     import 'quill-better-table/dist/quill-better-table.css';
-     ```
-
----
-
-### Table Insertion Not Working
-
-**Problem**: Clicking "Insert Table (3x3)" shows success message but no table appears.
-
-**Solution**: This is a known compatibility issue between Quill v2.0.3 and quill-better-table v1.2.10.
-
-**Workaround - Downgrade to Quill v1.3.7**:
-```bash
-cd frontend
-npm uninstall quill
-npm install quill@1.3.7
+```
+1. User clicks "Create New Blog"
+   ↓
+2. BlogEditor component loads with Quill editor
+   ↓
+3. User enters title and content
+   ↓
+4. User uploads images (uploaded to AWS S3)
+   ↓
+5. User adds mathematical equations (KaTeX)
+   ↓
+6. User clicks "Save as Draft" or "Publish"
+   ↓
+7. Blog saved to MongoDB
+   ↓
+8. Blog appears in user's blog list
 ```
 
-**Note**: Quill v1.3.7 has better compatibility with quill-better-table but is an older version.
+### Export Workflow
+
+```
+1. User opens published blog
+   ↓
+2. User clicks "PDF" or "Word" button
+   ↓
+3. Frontend processes blog content
+   ↓
+4. Images converted to base64 (CORS required)
+   ↓
+5. HTML converted to PDF/Word format
+   ↓
+6. File downloaded to user's computer
+```
 
 ---
 
-### Table Column/Row Operations Errors
+## 🔐 Security Features
 
-**Problem**: Console error when inserting columns/rows: `Cannot read properties of undefined (reading 'next')`.
-
-**Cause**: Quill v2.0.3 and quill-better-table v1.2.10 incompatibility.
-
-**Solution**: Downgrade to Quill v1.3.7 (see above).
-
----
-
-### MongoDB Connection Error
-
-**Problem**: Backend fails to start with MongoDB connection error.
-
-**Solutions**:
-
-1. **Start MongoDB**:
-   ```bash
-   # Windows
-   net start MongoDB
-
-   # macOS/Linux
-   brew services start mongodb-community
-   # or
-   mongod
-   ```
-
-2. **Check Connection String**:
-   - Verify `MONGODB_URI` in `backend/.env`
-   - Default: `mongodb://localhost:27017/academic-blog`
-
-3. **MongoDB Not Installed**:
-   - Install MongoDB Community Edition
-   - Or use MongoDB Atlas (cloud): https://www.mongodb.com/cloud/atlas
+- **JWT Authentication**: Secure token-based authentication
+- **Password Hashing**: bcryptjs for secure password storage
+- **CORS Configuration**: Controlled cross-origin requests
+- **Environment Variables**: Sensitive data in .env files
+- **AWS S3 Security**: Credentials stored securely
 
 ---
 
-### CORS Errors
+## 📈 Performance Considerations
 
-**Problem**: API requests fail with CORS errors.
-
-**Solutions**:
-
-1. **Check Both Servers Running**:
-   - Backend: `http://localhost:5000`
-   - Frontend: `http://localhost:5173`
-
-2. **Verify Environment Variables**:
-   - Frontend `.env`: `VITE_API_URL=http://localhost:5000/api`
-   - Backend `.env`: `FRONTEND_URL=http://localhost:5173`
-
-3. **Check CORS Configuration**:
-   - Verify `server.js` has CORS middleware configured
+- **Vite**: Fast development and production builds
+- **React 18**: Optimized rendering with concurrent features
+- **AWS S3**: Scalable cloud storage
+- **MongoDB Indexing**: Optimized database queries
+- **Image Optimization**: JPEG compression for exports
 
 ---
 
-### Image Upload Not Working
+## 🚀 Deployment
 
-**Problem**: Image upload fails or shows errors.
+### Backend Deployment (Heroku Example)
 
-**Solutions**:
+```bash
+# Create Heroku app
+heroku create your-app-name
 
-1. **Using Local Storage** (Default):
-   - Ensure `backend/uploads/` directory exists
-   - Check file permissions on uploads directory
+# Set environment variables
+heroku config:set JWT_SECRET=your_secret
+heroku config:set AWS_ACCESS_KEY_ID=your_key
+heroku config:set AWS_SECRET_ACCESS_KEY=your_secret
+heroku config:set MONGODB_URI=your_mongodb_uri
 
-2. **Using Cloudinary** (Optional):
-   - Sign up at https://cloudinary.com
-   - Add credentials to `backend/.env`:
-     ```env
-     CLOUDINARY_CLOUD_NAME=your_cloud_name
-     CLOUDINARY_API_KEY=your_api_key
-     CLOUDINARY_API_SECRET=your_api_secret
-     ```
+# Deploy
+git push heroku main
+```
 
----
+### Frontend Deployment (Vercel Example)
 
-### Frontend Won't Start (Vite Error)
+```bash
+# Install Vercel CLI
+npm i -g vercel
 
-**Problem**: Vite fails to start or shows build errors.
-
-**Solutions**:
-
-1. **Node.js Version**:
-   - Ensure Node.js v18.17.1 or higher
-   - Check: `node --version`
-   - Upgrade if needed: https://nodejs.org/
-
-2. **Clear Cache**:
-   ```bash
-   cd frontend
-   rm -rf node_modules .vite
-   npm install
-   npm run dev
-   ```
-
-3. **Port Already in Use**:
-   - Vite will automatically use next available port
-   - Or kill process using port 5173
+# Deploy
+vercel
+```
 
 ---
 
-### CSS Not Loading / Tailwind Errors
+## 🧪 Testing
 
-**Problem**: Styles not applying or PostCSS errors.
+### Backend Testing
 
-**Solutions**:
+```bash
+cd backend
+npm test
+```
 
-1. **Verify Tailwind Version**:
-   ```bash
-   cd frontend
-   npm list tailwindcss
-   # Should show v3.4.1
-   ```
+### Frontend Testing
 
-2. **Reinstall Tailwind** (if needed):
-   ```bash
-   npm install tailwindcss@3.4.1 postcss@8.5.6 autoprefixer@10.4.21 --save-dev
-   ```
-
-3. **Restart Dev Server**:
-   ```bash
-   npm run dev -- --force
-   ```
+```bash
+cd frontend
+npm test
+```
 
 ---
 
-### Port Already in Use
+## 📚 Additional Resources
 
-**Problem**: "Port 5000 already in use" or "Port 5173 already in use".
-
-**Solutions**:
-
-1. **Backend (Port 5000)**:
-   - Change `PORT` in `backend/.env` to another port (e.g., 5001)
-   - Update `VITE_API_URL` in `frontend/.env` accordingly
-
-2. **Frontend (Port 5173)**:
-   - Vite will automatically use next available port (5174, 5175, etc.)
-   - Or kill the process using the port
-
-3. **Kill Process** (Windows):
-   ```cmd
-   netstat -ano | findstr :5000
-   taskkill /PID <PID> /F
-   ```
-
-4. **Kill Process** (macOS/Linux):
-   ```bash
-   lsof -ti:5000 | xargs kill -9
-   ```
+- [Quill Editor Documentation](https://quilljs.com/)
+- [KaTeX Documentation](https://katex.org/)
+- [AWS S3 Documentation](https://docs.aws.amazon.com/s3/)
+- [MongoDB Documentation](https://docs.mongodb.com/)
+- [React Documentation](https://react.dev/)
+- [Express Documentation](https://expressjs.com/)
 
 ---
 
-### Node.js Version Warnings
+## 🐛 Known Issues
 
-**Problem**: "EBADENGINE" warnings when installing packages.
+### CORS Policy Blocking Images
+- **Status**: Fixed
+- **Solution**: CORS automatically configured on backend startup
+- **Workaround**: Manual CORS configuration in AWS S3 console
 
-**Cause**: Some packages prefer Node.js v20+.
-
-**Impact**: Warnings only - application works fine with Node.js v18.17.1.
-
-**Solution** (Optional):
-- Upgrade to Node.js v20+ for best compatibility
-- Or ignore the warnings
-
----
-
-### React Strict Mode Warnings
-
-**Problem**: Console warnings about deprecated APIs or double renders.
-
-**Note**: React Strict Mode is intentionally disabled in `main.jsx` for better compatibility with Quill editor.
-
-**This is normal** and does not affect functionality.
+### Large File Exports
+- **Status**: Known limitation
+- **Note**: Very large blogs (>10MB) may take longer to export
+- **Recommendation**: Break into multiple posts
 
 ---
+
+**Happy Blogging! 🚀**
+
