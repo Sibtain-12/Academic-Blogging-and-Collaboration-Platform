@@ -1,14 +1,6 @@
-const { cloudinary, isCloudinaryConfigured } = require('../config/cloudinary');
-const path = require('path');
-const fs = require('fs');
+const { s3, isAWSConfigured } = require('../config/aws');
 
-// Create uploads directory if it doesn't exist
-const uploadsDir = path.join(__dirname, '../uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
-
-// @desc    Upload image
+// @desc    Upload image to AWS S3
 // @route   POST /api/upload
 // @access  Private
 exports.uploadImage = async (req, res) => {
@@ -20,47 +12,43 @@ exports.uploadImage = async (req, res) => {
       });
     }
 
-    // Try Cloudinary first if configured, otherwise use local storage
-    if (isCloudinaryConfigured) {
-      try {
-        // Upload to Cloudinary
-        const result = await new Promise((resolve, reject) => {
-          const uploadStream = cloudinary.uploader.upload_stream(
-            {
-              folder: 'academic-blog',
-              resource_type: 'image',
-            },
-            (error, result) => {
-              if (error) reject(error);
-              else resolve(result);
-            }
-          );
-
-          uploadStream.end(req.file.buffer);
-        });
-
-        return res.status(200).json({
-          success: true,
-          url: result.secure_url,
-        });
-      } catch (cloudinaryError) {
-        console.error('Cloudinary upload failed, falling back to local storage:', cloudinaryError);
-      }
+    // Check if AWS S3 is configured
+    if (!isAWSConfigured) {
+      return res.status(500).json({
+        success: false,
+        message: 'AWS S3 is not configured. Please contact the administrator.',
+      });
     }
 
-    // Local file storage fallback
-    const fileName = `${Date.now()}-${req.file.originalname.replace(/\s+/g, '-')}`;
-    const filePath = path.join(uploadsDir, fileName);
+    // Generate unique file name
+    const fileName = `academic-blog/${Date.now()}-${req.file.originalname.replace(/\s+/g, '-')}`;
 
-    // Write file to disk
-    fs.writeFileSync(filePath, req.file.buffer);
+    // Prepare S3 upload parameters
+    // Note: ACL is not set here because the bucket has ACLs disabled
+    // Access is controlled by the bucket policy instead (modern approach)
+    const params = {
+      Bucket: process.env.AWS_S3_BUCKET_NAME,
+      Key: fileName,
+      Body: req.file.buffer,
+      ContentType: req.file.mimetype,
+    };
 
-    // Return URL for local file
-    const fileUrl = `${req.protocol}://${req.get('host')}/uploads/${fileName}`;
+    // Upload to S3
+    s3.upload(params, (err, data) => {
+      if (err) {
+        console.error('AWS S3 upload error:', err);
+        return res.status(500).json({
+          success: false,
+          message: 'Error uploading image to AWS S3',
+          error: err.message,
+        });
+      }
 
-    res.status(200).json({
-      success: true,
-      url: fileUrl,
+      // Return the S3 URL
+      res.status(200).json({
+        success: true,
+        url: data.Location,
+      });
     });
   } catch (error) {
     console.error('Image upload error:', error);

@@ -1,7 +1,6 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
-const path = require('path');
 const rateLimit = require('express-rate-limit');
 const connectDB = require('./config/db');
 const errorHandler = require('./middleware/error');
@@ -25,9 +24,6 @@ app.use(cors({
     : 'http://localhost:5173',
   credentials: true,
 }));
-
-// Serve uploaded files statically
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Rate limiting for auth routes
 const authLimiter = rateLimit({

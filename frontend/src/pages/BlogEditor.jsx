@@ -624,38 +624,352 @@ export default function BlogEditor() {
     }
   };
 
+  // Helper function to convert image URLs to base64
+  const imageToBase64 = (url) => {
+    return new Promise((resolve, reject) => {
+      // Skip if already base64
+      if (url.startsWith('data:')) {
+        resolve(url);
+        return;
+      }
+
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width || 400;
+          canvas.height = img.height || 300;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+          const base64 = canvas.toDataURL('image/jpeg', 0.95);
+          console.log('✅ Image converted to base64:', url.substring(0, 50));
+          resolve(base64);
+        } catch (error) {
+          console.error('❌ Canvas error:', error);
+          reject(error);
+        }
+      };
+
+      img.onerror = (error) => {
+        console.error('❌ Image load error for:', url, error);
+        reject(new Error(`Failed to load image: ${url}`));
+      };
+
+      img.src = url;
+    });
+  };
+
+  // Helper function to process content and convert all images to base64
+  const processContentForExport = async (htmlContent) => {
+    console.log('🔄 Processing content for export...');
+    console.log('📝 Original content length:', htmlContent.length);
+
+    let processedContent = htmlContent;
+
+    // More flexible regex to match img tags
+    const imgRegex = /<img[^>]*src=["']([^"']+)["'][^>]*>/gi;
+    const matches = [...htmlContent.matchAll(imgRegex)];
+
+    console.log('🖼️ Found', matches.length, 'images');
+
+    for (let i = 0; i < matches.length; i++) {
+      const match = matches[i];
+      const originalTag = match[0];
+      const imgUrl = match[1];
+
+      console.log(`Processing image ${i + 1}/${matches.length}:`, imgUrl.substring(0, 50));
+
+      try {
+        const base64 = await imageToBase64(imgUrl);
+        const newTag = originalTag.replace(imgUrl, base64);
+        processedContent = processedContent.replace(originalTag, newTag);
+        console.log(`✅ Image ${i + 1} converted successfully`);
+      } catch (error) {
+        console.warn(`⚠️ Could not convert image ${i + 1} (${imgUrl}):`, error.message);
+        // Keep original tag if conversion fails
+      }
+    }
+
+    console.log('✅ Content processing complete');
+    return processedContent;
+  };
+
   // Export to PDF
-  const handleExportPDF = () => {
-    const element = document.createElement('div');
-    element.innerHTML = `
-      <div style="padding: 40px; font-family: Arial, sans-serif;">
-        <h1 style="font-size: 28px; margin-bottom: 10px;">${title}</h1>
-        <p style="color: #666; margin-bottom: 20px;">
-          ${project ? `Project: ${project} | ` : ''}
-          ${tags ? `Tags: ${tags}` : ''}
-        </p>
-        <div style="line-height: 1.6;">${content}</div>
-      </div>
-    `;
+  const handleExportPDF = async () => {
+    try {
+      console.log('📄 Starting PDF export...');
+      toast.info('Processing images for PDF export...');
 
-    const opt = {
-      margin: 1,
-      filename: `${title || 'document'}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2 },
-      jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-    };
+      // Process content to convert images to base64
+      const processedContent = await processContentForExport(content);
 
-    html2pdf().set(opt).from(element).save();
-    toast.success('PDF exported successfully!');
+      console.log('📝 Processed content length:', processedContent.length);
+
+      const element = document.createElement('div');
+      element.innerHTML = `
+        <div style="padding: 40px; font-family: Arial, sans-serif;">
+          <h1 style="font-size: 28px; margin-bottom: 10px;">${title}</h1>
+          <p style="color: #666; margin-bottom: 20px;">
+            ${project ? `Project: ${project} | ` : ''}
+            ${tags ? `Tags: ${tags}` : ''}
+          </p>
+          <div style="line-height: 1.6;">${processedContent}</div>
+        </div>
+      `;
+
+      console.log('🎨 Element created, starting html2pdf...');
+
+      const opt = {
+        margin: 1,
+        filename: `${title || 'document'}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: {
+          scale: 2,
+          useCORS: true,
+          allowTaint: true,
+          logging: true
+        },
+        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+      };
+
+      html2pdf().set(opt).from(element).save();
+      console.log('✅ PDF export completed');
+      toast.success('PDF exported successfully!');
+    } catch (error) {
+      console.error('❌ PDF export error:', error);
+      toast.error('Failed to export PDF');
+    }
+  };
+
+  // Helper function to parse HTML content and extract elements
+  const parseHTMLContent = (htmlContent) => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(htmlContent, 'text/html');
+    return doc.body;
+  };
+
+  // Helper function to convert image URL to base64 for Word
+  const imageToBase64ForWord = (url) => {
+    return new Promise((resolve, reject) => {
+      // Skip if already base64
+      if (url.startsWith('data:')) {
+        const base64Data = url.split(',')[1];
+        resolve(base64Data);
+        return;
+      }
+
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width || 400;
+          canvas.height = img.height || 300;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+          const base64 = canvas.toDataURL('image/jpeg', 0.95);
+          // Remove data:image/jpeg;base64, prefix for docx
+          const base64Data = base64.split(',')[1];
+          console.log('✅ Word image converted:', url.substring(0, 50));
+          resolve(base64Data);
+        } catch (error) {
+          console.error('❌ Canvas error for Word:', error);
+          reject(error);
+        }
+      };
+
+      img.onerror = (error) => {
+        console.error('❌ Image load error for Word:', url, error);
+        reject(new Error(`Failed to load image: ${url}`));
+      };
+
+      img.src = url;
+    });
+  };
+
+  // Helper function to convert HTML elements to docx elements
+  const convertHTMLToDocxElements = async (htmlContent) => {
+    const { ImageRun, Table, TableRow, TableCell, BorderStyle } = await import('docx');
+    const elements = [];
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(htmlContent, 'text/html');
+
+    console.log('🔍 Parsing HTML content...');
+
+    for (const node of doc.body.childNodes) {
+      if (node.nodeType === Node.TEXT_NODE) {
+        const text = node.textContent.trim();
+        if (text) {
+          elements.push(new Paragraph({ text }));
+        }
+      } else if (node.nodeType === Node.ELEMENT_NODE) {
+        const tag = node.tagName.toLowerCase();
+
+        if (tag === 'p') {
+          const children = [];
+          for (const child of node.childNodes) {
+            if (child.nodeType === Node.TEXT_NODE) {
+              const text = child.textContent;
+              if (text) {
+                children.push(new TextRun({ text }));
+              }
+            } else if (child.nodeType === Node.ELEMENT_NODE) {
+              const childTag = child.tagName.toLowerCase();
+              if (childTag === 'img') {
+                // Handle images in paragraphs
+                try {
+                  const imgSrc = child.getAttribute('src');
+                  console.log('🖼️ Found image in paragraph:', imgSrc?.substring(0, 50));
+
+                  if (!imgSrc) {
+                    console.warn('⚠️ Image has no src attribute');
+                    children.push(new TextRun({ text: '[Image - no source]' }));
+                    continue;
+                  }
+
+                  const imgWidth = parseInt(child.getAttribute('width')) || 300;
+                  const imgHeight = parseInt(child.getAttribute('height')) || 200;
+
+                  console.log('📐 Image dimensions:', imgWidth, 'x', imgHeight);
+
+                  const base64 = await imageToBase64ForWord(imgSrc);
+                  console.log('✅ Image embedded in paragraph');
+
+                  children.push(new ImageRun({
+                    data: base64,
+                    transformation: {
+                      width: imgWidth,
+                      height: imgHeight,
+                    },
+                  }));
+                } catch (error) {
+                  console.warn('⚠️ Could not embed image:', error.message);
+                  children.push(new TextRun({ text: '[Image - failed to embed]' }));
+                }
+              } else if (childTag === 'strong' || childTag === 'b') {
+                children.push(new TextRun({
+                  text: child.textContent,
+                  bold: true,
+                }));
+              } else if (childTag === 'em' || childTag === 'i') {
+                children.push(new TextRun({
+                  text: child.textContent,
+                  italics: true,
+                }));
+              } else if (childTag === 'u') {
+                children.push(new TextRun({
+                  text: child.textContent,
+                  underline: {},
+                }));
+              } else if (childTag === 'span' && child.classList.contains('ql-formula')) {
+                // Handle KaTeX formulas - render as text representation
+                const formula = child.getAttribute('data-value') || child.textContent;
+                children.push(new TextRun({
+                  text: formula,
+                  italics: true,
+                }));
+              } else {
+                children.push(new TextRun({ text: child.textContent }));
+              }
+            }
+          }
+          if (children.length > 0) {
+            elements.push(new Paragraph({ children }));
+          }
+        } else if (tag === 'h1' || tag === 'h2' || tag === 'h3' || tag === 'h4' || tag === 'h5' || tag === 'h6') {
+          const level = parseInt(tag[1]);
+          elements.push(new Paragraph({
+            text: node.textContent,
+            heading: HeadingLevel[`HEADING_${level}`],
+          }));
+        } else if (tag === 'img') {
+          // Standalone images
+          try {
+            const imgSrc = node.getAttribute('src');
+            console.log('🖼️ Found standalone image:', imgSrc?.substring(0, 50));
+
+            if (!imgSrc) {
+              console.warn('⚠️ Standalone image has no src attribute');
+              elements.push(new Paragraph({ text: '[Image - no source]' }));
+              continue;
+            }
+
+            const imgWidth = parseInt(node.getAttribute('width')) || 400;
+            const imgHeight = parseInt(node.getAttribute('height')) || 300;
+
+            console.log('📐 Standalone image dimensions:', imgWidth, 'x', imgHeight);
+
+            const base64 = await imageToBase64ForWord(imgSrc);
+            console.log('✅ Standalone image embedded');
+
+            elements.push(new Paragraph({
+              children: [new ImageRun({
+                data: base64,
+                transformation: {
+                  width: imgWidth,
+                  height: imgHeight,
+                },
+              })],
+            }));
+          } catch (error) {
+            console.warn('⚠️ Could not embed standalone image:', error.message);
+            elements.push(new Paragraph({ text: '[Image could not be embedded]' }));
+          }
+        } else if (tag === 'table') {
+          // Handle tables
+          const rows = [];
+          for (const tr of node.querySelectorAll('tr')) {
+            const cells = [];
+            for (const td of tr.querySelectorAll('td, th')) {
+              cells.push(new TableCell({
+                children: [new Paragraph({ text: td.textContent })],
+              }));
+            }
+            rows.push(new TableRow({ children: cells }));
+          }
+          if (rows.length > 0) {
+            elements.push(new Table({
+              rows,
+              width: { size: 100, type: 'pct' },
+            }));
+          }
+        } else if (tag === 'blockquote') {
+          elements.push(new Paragraph({
+            text: node.textContent,
+            italics: true,
+            indent: { left: 720 },
+          }));
+        } else if (tag === 'ul' || tag === 'ol') {
+          for (const li of node.querySelectorAll('li')) {
+            elements.push(new Paragraph({
+              text: li.textContent,
+              bullet: { level: 0 },
+            }));
+          }
+        } else if (tag === 'br') {
+          elements.push(new Paragraph({ text: '' }));
+        }
+      }
+    }
+
+    return elements;
   };
 
   // Export to Word
   const handleExportWord = async () => {
     try {
-      // Convert HTML content to plain text for Word export
-      const plainText = content.replace(/<[^>]*>/g, '\n').trim();
-      const paragraphs = plainText.split('\n').filter(p => p.trim());
+      console.log('📄 Starting Word export...');
+      toast.info('Processing content for Word export...');
+
+      const { ImageRun, Table, TableRow, TableCell } = await import('docx');
+
+      // Convert HTML content to docx elements
+      console.log('🔄 Converting HTML to docx elements...');
+      const contentElements = await convertHTMLToDocxElements(content);
+      console.log('✅ Converted', contentElements.length, 'elements');
 
       const doc = new Document({
         sections: [{
@@ -665,38 +979,37 @@ export default function BlogEditor() {
               text: title,
               heading: HeadingLevel.HEADING_1,
             }),
-            new Paragraph({
+            ...(project ? [new Paragraph({
               children: [
                 new TextRun({
-                  text: `${project ? `Project: ${project}` : ''}`,
+                  text: `Project: ${project}`,
                   italics: true,
                 }),
               ],
-            }),
-            new Paragraph({
+            })] : []),
+            ...(tags ? [new Paragraph({
               children: [
                 new TextRun({
-                  text: `${tags ? `Tags: ${tags}` : ''}`,
+                  text: `Tags: ${tags}`,
                   italics: true,
                 }),
               ],
-            }),
+            })] : []),
             new Paragraph({ text: '' }), // Empty line
-            ...paragraphs.map(para =>
-              new Paragraph({
-                text: para,
-              })
-            ),
+            ...contentElements,
           ],
         }],
       });
 
+      console.log('📦 Packing document...');
       const blob = await Packer.toBlob(doc);
+      console.log('💾 Saving file...');
       saveAs(blob, `${title || 'document'}.docx`);
+      console.log('✅ Word export completed');
       toast.success('Word document exported successfully!');
     } catch (error) {
+      console.error('❌ Word export error:', error);
       toast.error('Failed to export Word document');
-      console.error(error);
     }
   };
 
