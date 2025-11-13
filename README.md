@@ -489,19 +489,5 @@ npm test
 
 ---
 
-## 🐛 Known Issues
-
-### CORS Policy Blocking Images
-- **Status**: Fixed
-- **Solution**: CORS automatically configured on backend startup
-- **Workaround**: Manual CORS configuration in AWS S3 console
-
-### Large File Exports
-- **Status**: Known limitation
-- **Note**: Very large blogs (>10MB) may take longer to export
-- **Recommendation**: Break into multiple posts
-
----
-
 **Happy Blogging! 🚀**
 
