@@ -264,44 +264,6 @@ The backend automatically configures CORS on startup. Check the console for:
 
 ---
 
-## 📚 Usage Guide
-
-### Creating a Blog Post
-
-1. Click **"Create New Blog"**
-2. Enter blog title
-3. Add content using the rich text editor
-4. Insert images using the image button
-5. Add mathematical equations using KaTeX syntax
-6. Click **"Save as Draft"** or **"Publish"**
-
-### Uploading Images
-
-1. Click the **image icon** in the editor toolbar
-2. Select an image from your computer
-3. Image uploads to AWS S3 automatically
-4. Image appears in the editor
-
-### Exporting to PDF
-
-1. Open a blog post
-2. Click **"PDF"** button
-3. PDF downloads with all formatting and images
-
-### Exporting to Word
-
-1. Open a blog post
-2. Click **"Word"** button
-3. Word document (.docx) downloads with formatting
-
-### Adding Mathematical Equations
-
-Use KaTeX syntax:
-- **Inline**: `$E = mc^2$`
-- **Block**: `$$\frac{-b \pm \sqrt{b^2 - 4ac}}{2a}$$`
-
----
-
 ## 🐛 Troubleshooting
 
 ### Issue: Images Not Showing in PDF/Word Exports
@@ -444,46 +406,6 @@ academic-blogging-platform/
 │
 ├── README.md                      # This file
 └── .gitignore
-```
-
----
-
-## 🔄 Workflow
-
-### Blog Creation Workflow
-
-```
-1. User clicks "Create New Blog"
-   ↓
-2. BlogEditor component loads with Quill editor
-   ↓
-3. User enters title and content
-   ↓
-4. User uploads images (uploaded to AWS S3)
-   ↓
-5. User adds mathematical equations (KaTeX)
-   ↓
-6. User clicks "Save as Draft" or "Publish"
-   ↓
-7. Blog saved to MongoDB
-   ↓
-8. Blog appears in user's blog list
-```
-
-### Export Workflow
-
-```
-1. User opens published blog
-   ↓
-2. User clicks "PDF" or "Word" button
-   ↓
-3. Frontend processes blog content
-   ↓
-4. Images converted to base64 (CORS required)
-   ↓
-5. HTML converted to PDF/Word format
-   ↓
-6. File downloaded to user's computer
 ```
 
 ---
