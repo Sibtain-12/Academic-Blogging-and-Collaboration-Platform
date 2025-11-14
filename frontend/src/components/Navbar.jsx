@@ -53,10 +53,10 @@ export default function Navbar() {
                     Manage Students
                   </Link>
                   <Link
-                    to="/admin/student-analytics"
+                    to="/user-statistics"
                     className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 px-3 py-2 rounded-md text-sm font-medium"
                   >
-                    Student Analytics
+                    User Statistics
                   </Link>
                 </>
               )}

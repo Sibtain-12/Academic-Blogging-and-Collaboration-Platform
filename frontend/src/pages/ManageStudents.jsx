@@ -4,12 +4,15 @@ import { toast } from 'react-toastify';
 import { formatDate } from '../utils/helpers';
 import { useAuth } from '../context/AuthContext';
 import { Navigate } from 'react-router-dom';
+import ResetPasswordModal from '../components/ResetPasswordModal';
 
 export default function ManageStudents() {
   const { isAdmin } = useAuth();
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState(null);
   const [newStudent, setNewStudent] = useState({
     name: '',
     email: '',
@@ -64,6 +67,15 @@ export default function ManageStudents() {
     }
   };
 
+  const handleResetPassword = (student) => {
+    setSelectedStudent({
+      id: student._id,
+      name: student.name,
+      email: student.email,
+    });
+    setShowResetPasswordModal(true);
+  };
+
   if (!isAdmin) {
     return <Navigate to="/home" replace />;
   }
@@ -71,7 +83,12 @@ export default function ManageStudents() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Manage Students</h1>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Manage Students</h1>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+            Total Students: <span className="font-semibold text-gray-900 dark:text-white">{students.length}</span>
+          </p>
+        </div>
         <button
           onClick={() => setShowAddModal(true)}
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
@@ -126,7 +143,13 @@ export default function ManageStudents() {
                         {formatDate(student.createdAt)}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-3">
+                      <button
+                        onClick={() => handleResetPassword(student)}
+                        className="text-blue-600 hover:text-blue-900 dark:hover:text-blue-400"
+                      >
+                        Reset Password
+                      </button>
                       <button
                         onClick={() => handleDeleteStudent(student._id, student.name)}
                         className="text-red-600 hover:text-red-900 dark:hover:text-red-400"
@@ -207,6 +230,17 @@ export default function ManageStudents() {
           </div>
         </div>
       )}
+
+      {/* Reset Password Modal */}
+      <ResetPasswordModal
+        isOpen={showResetPasswordModal}
+        student={selectedStudent}
+        onClose={() => {
+          setShowResetPasswordModal(false);
+          setSelectedStudent(null);
+        }}
+        onSuccess={fetchStudents}
+      />
     </div>
   );
 }

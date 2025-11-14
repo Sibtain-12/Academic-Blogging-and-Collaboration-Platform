@@ -20,6 +20,72 @@ exports.getStudents = async (req, res) => {
   }
 };
 
+// @desc    Reset student password (Admin only)
+// @route   PUT /api/users/:id/reset-password
+// @access  Private/Admin
+exports.resetStudentPassword = async (req, res) => {
+  try {
+    const { newPassword, confirmPassword } = req.body;
+    const studentId = req.params.id;
+
+    // Validate input
+    if (!newPassword || !confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide new password and confirm password',
+      });
+    }
+
+    // Validate password length
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password must be at least 6 characters long',
+      });
+    }
+
+    // Check if passwords match
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'Passwords do not match',
+      });
+    }
+
+    // Find the student
+    const student = await User.findById(studentId);
+
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: 'Student not found',
+      });
+    }
+
+    // Verify student role
+    if (student.role !== 'student') {
+      return res.status(400).json({
+        success: false,
+        message: 'Can only reset password for student users',
+      });
+    }
+
+    // Update password
+    student.password = newPassword;
+    await student.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Student password reset successfully',
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 // @desc    Delete student
 // @route   DELETE /api/users/:id
 // @access  Private/Admin

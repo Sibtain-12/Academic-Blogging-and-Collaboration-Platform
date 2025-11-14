@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Quill from 'quill';
 import 'quill/dist/quill.snow.css';
@@ -41,6 +41,7 @@ export default function BlogEditor() {
   const navigate = useNavigate();
   const quillRef = useRef(null);
   const editorRef = useRef(null); // Reference to the div element
+  const isSettingContentRef = useRef(false); // Flag to prevent infinite loop
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [tags, setTags] = useState('');
@@ -58,11 +59,44 @@ export default function BlogEditor() {
   // Find and Replace modal
   const [showFindReplace, setShowFindReplace] = useState(false);
 
+  // Tags and Projects selection
+  const [allBlogs, setAllBlogs] = useState([]);
+  const [selectedTags, setSelectedTags] = useState([]);
+  const [selectedProjects, setSelectedProjects] = useState([]);
+  const [newTag, setNewTag] = useState('');
+  const [newProject, setNewProject] = useState('');
+
+  // UI-only toggles for collapsible filters (collapsed by default)
+  const [isEditorTagsOpen, setIsEditorTagsOpen] = useState(false);
+  const [isEditorProjectsOpen, setIsEditorProjectsOpen] = useState(false);
+
+  // Fetch all blogs to get unique tags and projects
+  useEffect(() => {
+    const fetchAllBlogs = async () => {
+      try {
+        const response = await blogsAPI.getBlogs();
+        setAllBlogs(response.data.blogs || []);
+      } catch (error) {
+        console.error('Failed to fetch blogs for tags/projects');
+      }
+    };
+    fetchAllBlogs();
+  }, []);
+
   useEffect(() => {
     if (id) {
       fetchBlog();
     }
   }, [id]);
+
+  // Get unique tags and projects from all blogs
+  const uniqueTags = useMemo(() => {
+    return [...new Set(allBlogs.flatMap((blog) => blog.tags || []))].sort();
+  }, [allBlogs]);
+
+  const uniqueProjects = useMemo(() => {
+    return [...new Set(allBlogs.map((blog) => blog.project).filter(Boolean))].sort();
+  }, [allBlogs]);
 
   // Calculate document statistics
   useEffect(() => {
@@ -437,7 +471,16 @@ export default function BlogEditor() {
   // Initialize Quill editor with vanilla Quill (not React wrapper)
   // This must be defined AFTER the handlers and modules
   useEffect(() => {
-    if (!editorRef.current || quillRef.current) return;
+    if (!editorRef.current || quillRef.current) {
+      console.log('⏭️ Skipping Quill initialization:', {
+        editorRefExists: !!editorRef.current,
+        quillRefExists: !!quillRef.current
+      });
+      return;
+    }
+
+    console.log('🚀 Initializing Quill editor...');
+    console.log('📝 Initial content state:', content?.substring(0, 100) || 'No content');
 
     // Initialize Quill with the modules defined below
     const quill = new Quill(editorRef.current, {
@@ -517,45 +560,164 @@ export default function BlogEditor() {
       placeholder: 'Start writing your academic document here... Use the toolbar for formatting, tables, formulas, and more.',
     });
 
-    // Set initial content
+    console.log('✅ Quill editor initialized successfully');
+    console.log('🔎 quill.root connected?', quill.root?.isConnected, 'parent:', quill.root?.parentElement?.className);
+
+    // Set initial content (if any - usually empty on first load)
     if (content) {
+      console.log('📝 Setting initial content to Quill:', content.substring(0, 100));
+
+      // Set flag to prevent text-change event from updating state
+      isSettingContentRef.current = true;
+
+      console.log('🧩 Before set initial innerHTML:', { connected: quill.root?.isConnected, oldLength: quill.root?.innerHTML?.length, newLength: content.length });
       quill.root.innerHTML = content;
+      console.log('🧩 After set initial innerHTML:', { connected: quill.root?.isConnected, length: quill.root?.innerHTML?.length });
+      // Fallback if Quill seems to truncate content
+      try {
+        const lenNow = (quill.root?.innerHTML || '').replace(/\s/g, '').length;
+        const lenNew = (content || '').replace(/\s/g, '').length;
+        if (lenNow < Math.max(10, Math.floor(lenNew * 0.8))) {
+          console.warn('⚠️ innerHTML resulted in truncated content during initial set; falling back to dangerouslyPasteHTML');
+          quill.clipboard.dangerouslyPasteHTML(0, content, 'silent');
+        }
+      } catch (e) {
+        console.error('❌ Fallback dangerouslyPasteHTML failed (initial set):', e);
+      }
+
+      // Reset flag after a short delay
+      setTimeout(() => {
+        isSettingContentRef.current = false;
+      }, 100);
+
+      console.log('✅ Initial content set to Quill');
+    } else {
+      console.log('⚠️ No initial content to set (normal for new blogs or before fetch completes)');
     }
 
-    // Listen for text changes
-    quill.on('text-change', () => {
-      setContent(quill.root.innerHTML);
+    // Listen for text changes (only from user input, not programmatic changes)
+    quill.on('text-change', (_delta, _oldDelta, source) => {
+      // Skip if we're programmatically setting content
+      if (isSettingContentRef.current) {
+        console.log('📝 Quill text-change event - ignoring (programmatic update)');
+        return;
+      }
+
+      if (source === 'user') {
+        const newContent = quill.root.innerHTML;
+        console.log('📝 Quill text-change event (user) - updating content state');
+        setContent(newContent);
+      } else {
+        console.log('📝 Quill text-change event (api/silent) - ignoring');
+      }
     });
 
     // Store quill instance in ref
     quillRef.current = quill;
+    window.__quill = quill; // expose for debugging
+    console.log('✅ Quill instance stored in ref');
 
     return () => {
+      console.log('🧹 Cleaning up Quill editor');
       quillRef.current = null;
     };
   }, []); // Only run once on mount
 
   // Update content when fetched from API
   useEffect(() => {
-    if (quillRef.current && content && !quillRef.current.hasFocus()) {
-      const currentContent = quillRef.current.root.innerHTML;
-      if (currentContent !== content) {
+    console.log('🔄 Content sync useEffect triggered');
+    console.log('📊 State:', {
+      quillRefExists: !!quillRef.current,
+      contentExists: !!content,
+      contentLength: content?.length || 0,
+      hasFocus: quillRef.current?.hasFocus(),
+    });
+
+    if (!quillRef.current) {
+      console.log('⏭️ Quill not initialized yet - will update when Quill is ready');
+      return;
+    }
+
+    if (!content) {
+      console.log('⏭️ No content to set');
+      return;
+    }
+
+    const currentContent = quillRef.current.root.innerHTML;
+    const currentContentStripped = currentContent.replace(/<p><br><\/p>/g, '').trim();
+    const newContentStripped = content.replace(/<p><br><\/p>/g, '').trim();
+
+    console.log('📝 Current Quill content length:', currentContent?.length || 0);
+    console.log('📝 Current Quill content (stripped):', currentContentStripped.substring(0, 100));
+    console.log('📝 New content length:', content?.length || 0);
+    console.log('📝 New content (stripped):', newContentStripped.substring(0, 100));
+
+    // Update if content is different (ignoring empty paragraphs)
+    if (currentContentStripped !== newContentStripped) {
+      console.log('🔄 Content is different - updating Quill editor');
+      console.log('📝 Setting content:', content.substring(0, 200));
+
+      // Check if user is currently typing
+      const isUserTyping = quillRef.current.hasFocus();
+
+      if (!isUserTyping) {
+        // Set flag to prevent text-change event from updating state
+        isSettingContentRef.current = true;
+
+        // Directly set innerHTML - this is the most reliable method for loading saved content
+        console.log('📝 Setting content using innerHTML (editor not focused)', { connected: quillRef.current.root?.isConnected, oldLength: quillRef.current.root?.innerHTML?.length, newLength: content.length });
         quillRef.current.root.innerHTML = content;
+        console.log('📝 After innerHTML set', { connected: quillRef.current.root?.isConnected, length: quillRef.current.root?.innerHTML?.length });
+        // Fallback if Quill seems to truncate content
+        try {
+          const lenNow = (quillRef.current.root?.innerHTML || '').replace(/\s/g, '').length;
+          const lenNew = (content || '').replace(/\s/g, '').length;
+          if (lenNow < Math.max(10, Math.floor(lenNew * 0.8))) {
+            console.warn('⚠️ innerHTML resulted in truncated content; falling back to dangerouslyPasteHTML');
+            quillRef.current.clipboard.dangerouslyPasteHTML(0, content, 'silent');
+          }
+        } catch (e) {
+          console.error('❌ Fallback dangerouslyPasteHTML failed (sync):', e);
+        }
+
+        // Reset flag after a short delay to allow the event to be ignored
+        setTimeout(() => {
+          isSettingContentRef.current = false;
+        }, 100);
+
+        console.log('✅ Quill content updated successfully');
+        console.log('📝 Quill now contains:', quillRef.current.root.innerHTML.substring(0, 100));
+      } else {
+        console.log('⏭️ Skipping update - user is typing');
       }
+    } else {
+      console.log('⏭️ Content is the same - skipping update');
     }
   }, [content]);
 
   const fetchBlog = async () => {
     try {
       setLoading(true);
+      console.log('🔍 Fetching blog with ID:', id);
       const response = await blogsAPI.getBlog(id);
       const blog = response.data.blog;
+      console.log('✅ Blog fetched successfully:', blog);
+      console.log('📝 Blog content length:', blog.content?.length || 0);
+      console.log('📝 Blog content preview:', blog.content?.substring(0, 100) || 'No content');
+
       setTitle(blog.title);
       setContent(blog.content);
       setTags(blog.tags?.join(', ') || '');
       setProject(blog.project || '');
       setStatus(blog.status);
+      // Set selected tags and projects
+      setSelectedTags(blog.tags || []);
+      setSelectedProjects(blog.project ? [blog.project] : []);
+
+      console.log('✅ State updated with blog data');
+      console.log('🎯 Content state set to:', blog.content?.substring(0, 100) || 'No content');
     } catch (error) {
+      console.error('❌ Failed to fetch blog:', error);
       toast.error('Failed to fetch blog');
       navigate('/home');
     } finally {
@@ -565,7 +727,7 @@ export default function BlogEditor() {
 
   const handleAutoSave = async () => {
     if (!title || !content) return;
-    
+
     try {
       setSaving(true);
       const blogData = {
@@ -577,16 +739,71 @@ export default function BlogEditor() {
       };
 
       if (id) {
+        console.log('Auto-saving blog with ID:', id);
         await blogsAPI.updateBlog(id, blogData);
+        console.log('Auto-save successful');
       } else {
+        console.log('Creating new blog via auto-save');
         const response = await blogsAPI.createBlog(blogData);
+        console.log('Auto-save create successful');
         navigate(`/edit/${response.data.blog._id}`, { replace: true });
       }
     } catch (error) {
-      console.error('Auto-save failed');
+      console.error('Auto-save failed:', error);
+      console.error('Auto-save error response:', error.response);
     } finally {
       setSaving(false);
     }
+  };
+
+  // Toggle tag selection
+  const handleTagToggle = (tag) => {
+    setSelectedTags((prev) =>
+      prev.includes(tag)
+        ? prev.filter((t) => t !== tag)
+        : [...prev, tag]
+    );
+  };
+
+  // Toggle project selection
+  const handleProjectToggle = (project) => {
+    setSelectedProjects((prev) =>
+      prev.includes(project)
+        ? prev.filter((p) => p !== project)
+        : [...prev, project]
+    );
+  };
+
+  // Add new tag
+  const handleAddTag = () => {
+    if (newTag.trim()) {
+      const trimmedTag = newTag.trim();
+      if (!selectedTags.includes(trimmedTag)) {
+        setSelectedTags((prev) => [...prev, trimmedTag]);
+      }
+      setNewTag('');
+    }
+  };
+
+  // Add new project
+  const handleAddProject = () => {
+    if (newProject.trim()) {
+      const trimmedProject = newProject.trim();
+      if (!selectedProjects.includes(trimmedProject)) {
+        setSelectedProjects((prev) => [...prev, trimmedProject]);
+      }
+      setNewProject('');
+    }
+  };
+
+  // Remove selected tag
+  const handleRemoveTag = (tag) => {
+    setSelectedTags((prev) => prev.filter((t) => t !== tag));
+  };
+
+  // Remove selected project
+  const handleRemoveProject = (project) => {
+    setSelectedProjects((prev) => prev.filter((p) => p !== project));
   };
 
   const handleSave = async (publishStatus) => {
@@ -604,21 +821,32 @@ export default function BlogEditor() {
       const blogData = {
         title,
         content,
-        tags: tags.split(',').map((tag) => tag.trim()).filter(Boolean),
-        project,
+        tags: selectedTags,
+        project: selectedProjects.length > 0 ? selectedProjects[0] : '',
         status: publishStatus,
       };
 
       if (id) {
-        await blogsAPI.updateBlog(id, blogData);
+        console.log('Updating blog with ID:', id);
+        console.log('Blog data:', blogData);
+        const response = await blogsAPI.updateBlog(id, blogData);
+        console.log('Update response:', response);
         toast.success(`Blog ${publishStatus === 'published' ? 'published' : 'saved'} successfully!`);
       } else {
-        await blogsAPI.createBlog(blogData);
+        console.log('Creating new blog');
+        console.log('Blog data:', blogData);
+        const response = await blogsAPI.createBlog(blogData);
+        console.log('Create response:', response);
         toast.success(`Blog ${publishStatus === 'published' ? 'published' : 'saved'} successfully!`);
       }
       navigate('/home');
     } catch (error) {
-      toast.error('Failed to save blog');
+      console.error('Error saving blog:', error);
+      console.error('Error response:', error.response);
+
+      // Display specific error message from API if available
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to save blog';
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -1093,13 +1321,8 @@ export default function BlogEditor() {
     }
   };
 
-  if (loading && id) {
-    return (
-      <div className="text-center py-12">
-        <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
+  // Keep editor mounted even while loading to avoid unmounting Quill container
+  // We'll show a subtle loading state inline instead of returning early
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -1170,49 +1393,197 @@ export default function BlogEditor() {
           </div>
         </div>
 
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Title *
-            </label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter blog title..."
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white text-lg"
-            />
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Left Sidebar - Tags and Projects Selection */}
+          <div className="lg:col-span-1 order-2 lg:order-1">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 sticky top-20">
+              {/* Tags Section */}
+              <div className="mb-6">
+                <button
+                  type="button"
+                  onClick={() => setIsEditorTagsOpen((o) => !o)}
+                  aria-expanded={isEditorTagsOpen}
+                  aria-controls="editor-tags-filter"
+                  className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-left"
+                >
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Tags
+                  </span>
+                  <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">
+                    {selectedTags.length > 0 ? `(${selectedTags.length} selected)` : ''}
+                  </span>
+                  <svg
+                    className={`ml-auto h-4 w-4 text-gray-500 dark:text-gray-400 transition-transform ${isEditorTagsOpen ? 'transform rotate-180' : ''}`}
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 011.08 1.04l-4.25 4.25a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z" clipRule="evenodd" />
+                  </svg>
+                </button>
+
+                {/* Selected Tags */}
+                {selectedTags.length > 0 && (
+                  <div className="mb-3 pb-3 border-b border-gray-200 dark:border-gray-700">
+                    <p className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">Selected:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedTags.map((tag) => (
+                        <button
+                          key={tag}
+                          onClick={() => handleRemoveTag(tag)}
+                          className="inline-flex items-center gap-1 px-2 py-1 bg-blue-600 text-white text-xs rounded-full hover:bg-blue-700 transition-colors"
+                        >
+                          {tag}
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Existing Tags (collapsible) */}
+                {uniqueTags.length > 0 && isEditorTagsOpen && (
+                  <div id="editor-tags-filter" className="space-y-2 max-h-40 overflow-y-auto mt-3">
+                    {uniqueTags.map((tag) => (
+                      <label key={tag} className="flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={selectedTags.includes(tag)}
+                          onChange={() => handleTagToggle(tag)}
+                          className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                        />
+                        <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                          {tag}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+
+                {/* Add New Tag */}
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newTag}
+                    onChange={(e) => setNewTag(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleAddTag()}
+                    placeholder="Add new tag..."
+                    className="flex-1 px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                  />
+                  <button
+                    onClick={handleAddTag}
+                    className="px-2 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+
+              {/* Projects Section */}
+              <div>
+                <button
+                  type="button"
+                  onClick={() => setIsEditorProjectsOpen((o) => !o)}
+                  aria-expanded={isEditorProjectsOpen}
+                  aria-controls="editor-projects-filter"
+                  className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-left"
+                >
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Projects
+                  </span>
+                  <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">
+                    {selectedProjects.length > 0 ? `(${selectedProjects.length} selected)` : ''}
+                  </span>
+                  <svg
+                    className={`ml-auto h-4 w-4 text-gray-500 dark:text-gray-400 transition-transform ${isEditorProjectsOpen ? 'transform rotate-180' : ''}`}
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 011.08 1.04l-4.25 4.25a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z" clipRule="evenodd" />
+                  </svg>
+                </button>
+
+                {/* Selected Projects */}
+                {selectedProjects.length > 0 && (
+                  <div className="mb-3 pb-3 border-b border-gray-200 dark:border-gray-700">
+                    <p className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">Selected:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedProjects.map((project) => (
+                        <button
+                          key={project}
+                          onClick={() => handleRemoveProject(project)}
+                          className="inline-flex items-center gap-1 px-2 py-1 bg-green-600 text-white text-xs rounded-full hover:bg-green-700 transition-colors"
+                        >
+                          {project}
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Existing Projects (collapsible) */}
+                {uniqueProjects.length > 0 && isEditorProjectsOpen && (
+                  <div id="editor-projects-filter" className="space-y-2 max-h-40 overflow-y-auto mt-3">
+                    {uniqueProjects.map((project) => (
+                      <label key={project} className="flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={selectedProjects.includes(project)}
+                          onChange={() => handleProjectToggle(project)}
+                          className="w-4 h-4 text-green-600 rounded focus:ring-2 focus:ring-green-500"
+                        />
+                        <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                          {project}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+
+                {/* Add New Project */}
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newProject}
+                    onChange={(e) => setNewProject(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleAddProject()}
+                    placeholder="Add new project..."
+                    className="flex-1 px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:text-white"
+                  />
+                  <button
+                    onClick={handleAddProject}
+                    className="px-2 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition-colors"
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Main Editor */}
+          <div className="lg:col-span-3 order-1 lg:order-2 space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Tags (comma-separated)
+                Title *
               </label>
               <input
                 type="text"
-                value={tags}
-                onChange={(e) => setTags(e.target.value)}
-                placeholder="e.g., AI, Machine Learning, Research"
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Enter blog title..."
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white text-lg"
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Project/Category
-              </label>
-              <input
-                type="text"
-                value={project}
-                onChange={(e) => setProject(e.target.value)}
-                placeholder="e.g., Final Year Project"
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-              />
-            </div>
-          </div>
-
-          <div>
             <div className="flex justify-between items-center mb-1">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Content *
@@ -1268,29 +1639,29 @@ export default function BlogEditor() {
               className="bg-white dark:bg-gray-700 rounded-lg"
               style={{ height: '500px', marginBottom: '60px' }}
             />
-          </div>
 
-          <div className="flex gap-3 pt-4">
-            <button
-              onClick={() => handleSave('draft')}
-              disabled={loading}
-              className="px-6 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 font-medium disabled:opacity-50"
-            >
-              Save as Draft
-            </button>
-            <button
-              onClick={() => handleSave('published')}
-              disabled={loading}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium disabled:opacity-50"
-            >
-              {loading ? 'Publishing...' : 'Publish'}
-            </button>
-            <button
-              onClick={() => navigate('/home')}
-              className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium"
-            >
-              Cancel
-            </button>
+            <div className="flex gap-3 pt-4">
+              <button
+                onClick={() => handleSave('draft')}
+                disabled={loading}
+                className="px-6 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 font-medium disabled:opacity-50"
+              >
+                Save as Draft
+              </button>
+              <button
+                onClick={() => handleSave('published')}
+                disabled={loading}
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium disabled:opacity-50"
+              >
+                {loading ? 'Publishing...' : 'Publish'}
+              </button>
+              <button
+                onClick={() => navigate('/home')}
+                className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       </div>

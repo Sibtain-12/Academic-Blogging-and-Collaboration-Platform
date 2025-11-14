@@ -4,6 +4,7 @@ import { blogsAPI, commentsAPI } from '../services/api';
 import { toast } from 'react-toastify';
 import { formatRelativeTime, formatDate } from '../utils/helpers';
 import { useAuth } from '../context/AuthContext';
+import 'quill/dist/quill.snow.css';
 
 export default function BlogDetail() {
   const { id } = useParams();
@@ -106,7 +107,7 @@ export default function BlogDetail() {
             <div className="flex items-center text-sm text-gray-600 dark:text-gray-400 space-x-4">
               <span className="font-medium">{blog.author?.name}</span>
               <span>•</span>
-              <span>{formatDate(blog.createdAt)}</span>
+              <span>Published {formatDate(blog.createdAt)}</span>
               {blog.updatedAt !== blog.createdAt && (
                 <>
                   <span>•</span>
@@ -155,7 +156,7 @@ export default function BlogDetail() {
         )}
 
         <div
-          className="prose dark:prose-invert max-w-none"
+          className="blog-content prose dark:prose-invert max-w-none"
           dangerouslySetInnerHTML={{ __html: blog.content }}
         />
       </div>
@@ -208,7 +209,7 @@ export default function BlogDetail() {
                           {comment.author?.name}
                         </span>
                         <span className="text-sm text-gray-500 dark:text-gray-400">
-                          {formatRelativeTime(comment.createdAt)}
+                          {formatDate(comment.createdAt)}
                         </span>
                       </div>
                       <p className="text-gray-700 dark:text-gray-300">{comment.text}</p>

@@ -3,6 +3,7 @@ import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { blogsAPI } from '../services/api';
 import { toast } from 'react-toastify';
 import { formatDate, formatRelativeTime } from '../utils/helpers';
+import 'quill/dist/quill.snow.css';
 
 export default function AdminBlogDetail() {
   const { studentId, blogId } = useParams();
@@ -160,7 +161,7 @@ export default function AdminBlogDetail() {
 
         {/* Content */}
         <div
-          className="prose dark:prose-invert max-w-none text-gray-900 dark:text-gray-100"
+          className="blog-content prose dark:prose-invert max-w-none text-gray-900 dark:text-gray-100"
           dangerouslySetInnerHTML={{ __html: blog.content }}
         />
       </div>

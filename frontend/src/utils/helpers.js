@@ -32,13 +32,20 @@ export const formatRelativeTime = (date) => {
   return `${diffInYears} year${diffInYears > 1 ? 's' : ''} ago`;
 };
 
-// Format date to readable string
+// Format date to readable string with time
 export const formatDate = (date) => {
-  return new Date(date).toLocaleDateString('en-US', {
+  const dateObj = new Date(date);
+  const dateStr = dateObj.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
   });
+  const timeStr = dateObj.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
+  return `${dateStr} at ${timeStr}`;
 };
 
 // Truncate text
