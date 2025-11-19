@@ -560,51 +560,6 @@ The platform automatically sends emails for:
 
 ---
 
-## 🆕 Recent Updates & Features
-
-### Version 2.0 - Admin & Email Features
-
-#### New Admin Capabilities
-- ✅ Student account creation with auto-generated passwords
-- ✅ Student account deletion with cascade cleanup
-- ✅ Password reset for students
-- ✅ Email address changes for students
-- ✅ Student search and filtering
-- ✅ Admin-only dashboard with analytics
-
-#### Email Notification System
-- ✅ Automatic welcome emails for new students (with login credentials)
-- ✅ Blog publication notifications to all users
-- ✅ Comment notifications for published blogs
-- ✅ Multi-provider email support (Gmail, SendGrid, SMTP)
-- ✅ Async non-blocking email delivery
-
-#### Timestamp Enhancements
-- ✅ Separate tracking: createdAt, publishedAt, updatedAt
-- ✅ Proper display of publication and update dates
-- ✅ Draft blogs show creation date only
-- ✅ Published blogs show publication and update times
-
-#### Portal Rendering & UI
-- ✅ Fixed React validation warnings using portal rendering
-- ✅ Improved ManageStudents page with better UI/UX
-- ✅ Interactive dropdown menus with click-outside detection
-- ✅ Enhanced dark mode support throughout
-
-#### Data Integrity
-- ✅ Cascade deletion: Removing student deletes their blogs and comments
-- ✅ Orphan prevention: No null author references in database
-- ✅ Frontend null checks: Safe handling of missing author data
-- ✅ Database consistency maintained
-
-#### Fixed Issues
-- ✅ Fixed null reference error when accessing deleted student's blogs
-- ✅ Fixed dropdown functionality in ManageStudents
-- ✅ Fixed HTML nesting violations in React components
-- ✅ Fixed email sending errors with proper error handling
-
----
-
 Contributions are welcome! Please follow these steps:
 
 1. Fork the repository
@@ -841,36 +796,6 @@ npm test
 - [MongoDB Documentation](https://docs.mongodb.com/)
 - [React Documentation](https://react.dev/)
 - [Express Documentation](https://expressjs.com/)
-
----
-
-## 🐛 Known Issues
-
-### CORS Policy Blocking Images
-- **Status**: ✅ Fixed
-- **Solution**: CORS automatically configured on backend startup
-- **Workaround**: Manual CORS configuration in AWS S3 console
-
-### Large File Exports
-- **Status**: Known limitation
-- **Note**: Very large blogs (>10MB) may take longer to export
-- **Recommendation**: Break into multiple posts
-
-### Email Delivery Delays
-- **Status**: Expected behavior
-- **Note**: Emails sent asynchronously (non-blocking)
-- **Impact**: Emails may arrive after API response completes
-- **Benefit**: Improved performance and reliability
-
-### Null Reference on Deleted Student's Blog
-- **Status**: ✅ Fixed in v2.0
-- **Solution**: Student deletion now cascades delete blogs and comments
-- **Impact**: No more orphaned blog records
-
-### Admin Dropdown Not Responding
-- **Status**: ✅ Fixed in v2.0
-- **Solution**: Implemented portal rendering for dropdown
-- **Impact**: Actions (Reset Password, Change Email) now work correctly
 
 ---
 
