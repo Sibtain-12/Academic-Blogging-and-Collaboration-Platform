@@ -33,6 +33,9 @@ exports.getAdminStats = async (req, res) => {
     const blogIds = adminBlogs.map((blog) => blog._id);
     const totalComments = await Comment.countDocuments({ blogId: { $in: blogIds } });
 
+    // Total comments made by admin
+    const adminCommentsMade = await Comment.countDocuments({ author: req.user.id });
+
     // Total students (for reference)
     const totalStudents = await User.countDocuments({ role: 'student' });
 
@@ -60,6 +63,7 @@ exports.getAdminStats = async (req, res) => {
         draftBlogs,
         deletedBlogs,
         totalComments,
+        adminCommentsMade,
         totalStudents,
         myBlogs: blogsWithCommentCount,
       },

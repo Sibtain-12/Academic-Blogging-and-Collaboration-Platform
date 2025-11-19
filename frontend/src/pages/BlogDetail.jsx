@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { blogsAPI, commentsAPI } from '../services/api';
 import { toast } from 'react-toastify';
 import { formatRelativeTime, formatDate } from '../utils/helpers';
@@ -9,12 +9,30 @@ import 'quill/dist/quill.snow.css';
 export default function BlogDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, isAdmin } = useAuth();
   const [blog, setBlog] = useState(null);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(true);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  // Check if we came from student detail view
+  const fromStudentDetail = location.state?.from === 'student-detail';
+  const studentId = location.state?.studentId;
+  const fromDashboard = location.state?.from === 'dashboard';
+
+  const handleGoBack = () => {
+    if (fromStudentDetail && studentId) {
+      // Navigate back to user statistics with student selected
+      navigate('/user-statistics', { state: { selectedStudentId: studentId } });
+    } else if (fromDashboard) {
+      // Navigate back to dashboard
+      navigate('/dashboard');
+    } else {
+      navigate('/home');
+    }
+  };
 
   useEffect(() => {
     fetchBlog();
@@ -104,6 +122,15 @@ export default function BlogDetail() {
 
   return (
     <div className="max-w-4xl mx-auto">
+      <button
+        onClick={handleGoBack}
+        className="inline-flex items-center mb-6 px-3 py-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 text-sm font-medium transition-colors"
+      >
+        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        </svg>
+        {fromStudentDetail ? 'Back to Student' : fromDashboard ? 'Back to Dashboard' : 'Back to Home'}
+      </button>
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 mb-6">
         <div className="flex justify-between items-start mb-6">
           <div className="flex-1">

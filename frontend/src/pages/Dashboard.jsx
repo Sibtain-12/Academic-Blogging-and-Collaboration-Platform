@@ -245,7 +245,7 @@ export default function Dashboard() {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                {isAdmin ? 'My Comments' : 'Total Comments'}
+                {isAdmin ? 'Comments Received' : 'Total Comments'}
               </p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalComments}</p>
             </div>
@@ -257,12 +257,13 @@ export default function Dashboard() {
             <div className="flex items-center">
               <div className="p-3 rounded-full bg-indigo-100 dark:bg-indigo-900">
                 <svg className="w-8 h-8 text-indigo-600 dark:text-indigo-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+                  <path d="M2 5a2 2 0 012-2h7a2 2 0 012 2v4a2 2 0 01-2 2H9l-3 3v-3H4a2 2 0 01-2-2V5z" />
+                  <path d="M15 7v2a4 4 0 01-4 4H9.828l-1.766 1.767c.28.149.599.233.938.233h2l3 3v-3h2a2 2 0 002-2V9a2 2 0 00-2-2h-1z" />
                 </svg>
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Students</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalStudents}</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Comments Made</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.adminCommentsMade}</p>
               </div>
             </div>
           </div>
@@ -503,6 +504,7 @@ export default function Dashboard() {
                           <td className="px-6 py-4">
                             <Link
                               to={`/blog/${blog._id}`}
+                              state={{ from: 'dashboard' }}
                               className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
                             >
                               {blog.title}
@@ -572,6 +574,7 @@ export default function Dashboard() {
                     <Link
                       key={blog._id}
                       to={`/blog/${blog._id}`}
+                      state={{ from: 'dashboard' }}
                       className="block bg-gray-50 dark:bg-gray-700 rounded-lg p-4 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                     >
                       <div className="flex justify-between items-start mb-2">

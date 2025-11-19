@@ -1,14 +1,18 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { blogsAPI, usersAPI, commentsAPI } from '../services/api';
 import { toast } from 'react-toastify';
 import { formatDate } from '../utils/helpers';
 import { useAuth } from '../context/AuthContext';
 
 export default function UserStatistics() {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [users, setUsers] = useState([]);
   const [blogs, setBlogs] = useState([]);
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedStudent, setSelectedStudent] = useState(null);
   const [filters, setFilters] = useState({
     name: '',
     role: [],
@@ -23,6 +27,18 @@ export default function UserStatistics() {
   useEffect(() => {
     fetchData();
   }, []);
+
+  // Restore selected student when coming back from blog detail
+  useEffect(() => {
+    if (location.state?.selectedStudentId && users.length > 0) {
+      const student = users.find((u) => u._id === location.state.selectedStudentId);
+      if (student) {
+        setSelectedStudent(student);
+      }
+      // Clear the state after using it
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state, users]);
 
   const fetchData = async () => {
     try {
@@ -42,7 +58,12 @@ export default function UserStatistics() {
         for (const blog of blogsResponse.data.blogs) {
           try {
             const commentsResponse = await commentsAPI.getComments(blog._id);
-            allComments.push(...(commentsResponse.data.comments || []));
+            const commentsWithBlogInfo = (commentsResponse.data.comments || []).map((comment) => ({
+              ...comment,
+              blogId: blog._id,
+              blogTitle: blog.title,
+            }));
+            allComments.push(...commentsWithBlogInfo);
           } catch (error) {
             // Skip if comments can't be fetched for this blog
           }
@@ -187,6 +208,16 @@ export default function UserStatistics() {
     });
   };
 
+  const getStudentDetails = (studentId) => {
+    const studentBlogs = blogs.filter((blog) => blog.author?._id === studentId);
+    const studentComments = comments.filter((comment) => comment.author?._id === studentId);
+    
+    return {
+      blogs: studentBlogs,
+      comments: studentComments,
+    };
+  };
+
   if (!isAdmin) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
@@ -197,6 +228,140 @@ export default function UserStatistics() {
           <p className="text-gray-600 dark:text-gray-400">
             Only administrators can view user statistics.
           </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show student detail view if selected
+  if (selectedStudent) {
+    const { blogs: studentBlogs, comments: studentComments } = getStudentDetails(selectedStudent._id);
+    
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        {/* Header */}
+        <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex items-center justify-between">
+            <div>
+              <button
+                onClick={() => setSelectedStudent(null)}
+                className="inline-flex items-center mb-4 px-3 py-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 text-sm font-medium transition-colors"
+              >
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                Back to List
+              </button>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+                {selectedStudent.name}
+              </h1>
+              <p className="text-gray-600 dark:text-gray-400 mt-1">
+                {selectedStudent.email}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Summary Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+              <p className="text-gray-600 dark:text-gray-400 text-sm">Total Blogs</p>
+              <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">
+                {studentBlogs.length}
+              </p>
+            </div>
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+              <p className="text-gray-600 dark:text-gray-400 text-sm">Total Comments</p>
+              <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">
+                {studentComments.length}
+              </p>
+            </div>
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+              <p className="text-gray-600 dark:text-gray-400 text-sm">Joined On</p>
+              <p className="text-lg font-semibold text-gray-900 dark:text-white mt-2">
+                {formatDate(selectedStudent.createdAt)}
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Student Blogs */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                📝 Blogs Written ({studentBlogs.length})
+              </h2>
+              {studentBlogs.length === 0 ? (
+                <p className="text-gray-500 dark:text-gray-400">No blogs written yet</p>
+              ) : (
+                <div className="space-y-4 max-h-96 overflow-y-auto">
+                  {studentBlogs.map((blog) => (
+                    <div
+                      key={blog._id}
+                      onClick={() => navigate(`/blog/${blog._id}`, { state: { from: 'student-detail', studentId: selectedStudent._id } })}
+                      className="border-l-4 border-blue-500 pl-4 pb-4 border-b border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900 dark:hover:bg-opacity-20 p-3 rounded transition-colors"
+                    >
+                      <h3 className="font-semibold text-gray-900 dark:text-white mb-3 hover:text-blue-600 dark:hover:text-blue-400">
+                        {blog.title}
+                      </h3>
+                      <div className="flex flex-wrap gap-2 items-center text-xs">
+                        <span className={`px-2 py-1 rounded ${
+                          blog.status === 'published'
+                            ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'
+                            : 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200'
+                        }`}>
+                          {blog.status}
+                        </span>
+                        <span className="text-gray-500 dark:text-gray-400">
+                          {formatDate(blog.createdAt)}
+                        </span>
+                        {blog.project && (
+                          <span className="text-gray-500 dark:text-gray-400">
+                            📦 {blog.project}
+                          </span>
+                        )}
+                      </div>
+                      {blog.tags && blog.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {blog.tags.map((tag) => (
+                            <span key={tag} className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded">
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Student Comments */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                💬 Comments Made ({studentComments.length})
+              </h2>
+              {studentComments.length === 0 ? (
+                <p className="text-gray-500 dark:text-gray-400">No comments made yet</p>
+              ) : (
+                <div className="space-y-4 max-h-96 overflow-y-auto">
+                  {studentComments.map((comment) => (
+                      <div key={comment._id} className="border-l-4 border-green-500 pl-4 pb-4 border-b border-gray-200 dark:border-gray-700">
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                          on: <span className="font-semibold">{comment.blogTitle || 'Unknown Blog'}</span>
+                        </p>
+                        <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+                          {comment.content}
+                        </p>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                          {formatDate(comment.createdAt)}
+                        </span>
+                      </div>
+                    ))}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -408,7 +573,8 @@ export default function UserStatistics() {
                       {filteredStats.map((user) => (
                         <tr
                           key={user._id}
-                          className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                          onClick={() => setSelectedStudent(user)}
+                          className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer"
                         >
                           <td className="px-6 py-4">
                             <span className="font-medium text-gray-900 dark:text-white">
@@ -457,7 +623,8 @@ export default function UserStatistics() {
                   {filteredStats.map((user) => (
                     <div
                       key={user._id}
-                      className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4"
+                      onClick={() => setSelectedStudent(user)}
+                      className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 cursor-pointer hover:shadow-lg transition-shadow"
                     >
                       <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                         {user.name}

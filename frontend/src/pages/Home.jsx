@@ -19,6 +19,7 @@ export default function Home() {
   // UI-only toggles for collapsible filters (collapsed by default)
   const [isProjectsOpen, setIsProjectsOpen] = useState(false);
   const [isTagsOpen, setIsTagsOpen] = useState(false);
+  const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
   const [selectedBlogComments, setSelectedBlogComments] = useState(null);
   const [commentsLoading, setCommentsLoading] = useState(false);
   const { isAdmin } = useAuth();
@@ -213,6 +214,15 @@ export default function Home() {
     navigate('/home', { replace: true });
   };
 
+  const handleViewStudentDetail = (student, e) => {
+    if (e) {
+      e.stopPropagation();
+    }
+    if (isAdmin) {
+      navigate('/user-statistics', { state: { selectedStudentId: student._id } });
+    }
+  };
+
   // Format date to readable format
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -250,203 +260,218 @@ export default function Home() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* Filter Toggle Button */}
+        <div className="mb-4 flex items-center">
+          <button
+            onClick={() => setIsFilterPanelOpen(!isFilterPanelOpen)}
+            className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 font-medium flex items-center gap-2 transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+            </svg>
+            {isFilterPanelOpen ? 'Hide Filters' : 'Show Filters'}
+          </button>
+        </div>
+
+        <div className={`grid gap-6 ${isFilterPanelOpen ? 'grid-cols-1 lg:grid-cols-4' : 'grid-cols-1'}`}>
           {/* Filter Panel */}
-          <div className="lg:col-span-1">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 sticky top-6">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                🔍 Filters
-              </h2>
+          {isFilterPanelOpen && (
+            <div className="lg:col-span-1">
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 sticky top-6">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                  🔍 Filters
+                </h2>
 
-              {/* Filter by Title */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Blog Title
-                </label>
-                <input
-                  type="text"
-                  name="title"
-                  value={filters.title}
-                  onChange={handleFilterChange}
-                  placeholder="Search title..."
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white text-sm"
-                />
-              </div>
-
-              {/* Filter by Author */}
-              {students.length > 0 && (
+                {/* Filter by Title */}
                 <div className="mb-6">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Author
+                    Blog Title
                   </label>
-                  <select
-                    name="author"
-                    value={filters.author}
+                  <input
+                    type="text"
+                    name="title"
+                    value={filters.title}
                     onChange={handleFilterChange}
+                    placeholder="Search title..."
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white text-sm"
-                  >
-                    <option value="">All Authors</option>
-                    {students.map((student) => (
-                      <option key={student._id} value={student._id}>
-                        {student.name}
-                      </option>
-                    ))}
-                  </select>
+                  />
                 </div>
-              )}
 
-              {/* Filter by Project (collapsible) */}
-              {uniqueProjects.length > 0 && (
-                <div className="mb-6">
-                  <button
-                    type="button"
-                    onClick={() => setIsProjectsOpen((o) => !o)}
-                    aria-expanded={isProjectsOpen}
-                    aria-controls="home-projects-filter"
-                    className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-left"
-                  >
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Project/Category
-                    </span>
-                    <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">
-                      {filters.projects.length > 0 ? `(${filters.projects.length} selected)` : ''}
-                    </span>
-                    <svg
-                      className={`ml-auto h-4 w-4 text-gray-500 dark:text-gray-400 transition-transform ${isProjectsOpen ? 'transform rotate-180' : ''}`}
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                      aria-hidden="true"
+                {/* Filter by Author */}
+                {students.length > 0 && (
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Author
+                    </label>
+                    <select
+                      name="author"
+                      value={filters.author}
+                      onChange={handleFilterChange}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white text-sm"
                     >
-                      <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 011.08 1.04l-4.25 4.25a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z" clipRule="evenodd" />
-                    </svg>
-                  </button>
-                  {isProjectsOpen && (
-                    <div id="home-projects-filter" className="space-y-2 max-h-40 overflow-y-auto mt-3">
-                      {uniqueProjects.map((project) => (
-                        <label key={project} className="flex items-center">
-                          <input
-                            type="checkbox"
-                            checked={filters.projects.includes(project)}
-                            onChange={() => handleProjectToggle(project)}
-                            className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-                          />
-                          <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
-                            {project}
-                          </span>
-                        </label>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Filter by Tags (collapsible) */}
-              {uniqueTags.length > 0 && (
-                <div className="mb-6">
-                  <button
-                    type="button"
-                    onClick={() => setIsTagsOpen((o) => !o)}
-                    aria-expanded={isTagsOpen}
-                    aria-controls="home-tags-filter"
-                    className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-left"
-                  >
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Tags
-                    </span>
-                    <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">
-                      {filters.tags.length > 0 ? `(${filters.tags.length} selected)` : ''}
-                    </span>
-                    <svg
-                      className={`ml-auto h-4 w-4 text-gray-500 dark:text-gray-400 transition-transform ${isTagsOpen ? 'transform rotate-180' : ''}`}
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                      aria-hidden="true"
-                    >
-                      <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 011.08 1.04l-4.25 4.25a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z" clipRule="evenodd" />
-                    </svg>
-                  </button>
-                  {isTagsOpen && (
-                    <div id="home-tags-filter" className="space-y-2 max-h-40 overflow-y-auto mt-3">
-                      {uniqueTags.map((tag) => (
-                        <label key={tag} className="flex items-center">
-                          <input
-                            type="checkbox"
-                            checked={filters.tags.includes(tag)}
-                            onChange={() => handleTagToggle(tag)}
-                            className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-                          />
-                          <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
-                            {tag}
-                          </span>
-                        </label>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Filter by Month */}
-              {uniqueMonths.length > 0 && (
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Month
-                  </label>
-                  <select
-                    name="month"
-                    value={filters.month}
-                    onChange={handleFilterChange}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white text-sm"
-                  >
-                    <option value="">All Months</option>
-                    {uniqueMonths.map((month) => {
-                      const [year, monthNum] = month.split('-');
-                      const date = new Date(year, parseInt(monthNum) - 1);
-                      return (
-                        <option key={month} value={month}>
-                          {date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}
+                      <option value="">All Authors</option>
+                      {students.map((student) => (
+                        <option key={student._id} value={student._id}>
+                          {student.name}
                         </option>
-                      );
-                    })}
-                  </select>
-                </div>
-              )}
+                      ))}
+                    </select>
+                  </div>
+                )}
 
-              {/* Filter by Year */}
-              {uniqueYears.length > 0 && (
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Year
-                  </label>
-                  <select
-                    name="year"
-                    value={filters.year}
-                    onChange={handleFilterChange}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white text-sm"
-                  >
-                    <option value="">All Years</option>
-                    {uniqueYears.map((year) => (
-                      <option key={year} value={year}>
-                        {year}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
+                {/* Filter by Project (collapsible) */}
+                {uniqueProjects.length > 0 && (
+                  <div className="mb-6">
+                    <button
+                      type="button"
+                      onClick={() => setIsProjectsOpen((o) => !o)}
+                      aria-expanded={isProjectsOpen}
+                      aria-controls="home-projects-filter"
+                      className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-left"
+                    >
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Project/Category
+                      </span>
+                      <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">
+                        {filters.projects.length > 0 ? `(${filters.projects.length} selected)` : ''}
+                      </span>
+                      <svg
+                        className={`ml-auto h-4 w-4 text-gray-500 dark:text-gray-400 transition-transform ${isProjectsOpen ? 'transform rotate-180' : ''}`}
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                        aria-hidden="true"
+                      >
+                        <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 011.08 1.04l-4.25 4.25a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                    {isProjectsOpen && (
+                      <div id="home-projects-filter" className="space-y-2 max-h-40 overflow-y-auto mt-3">
+                        {uniqueProjects.map((project) => (
+                          <label key={project} className="flex items-center">
+                            <input
+                              type="checkbox"
+                              checked={filters.projects.includes(project)}
+                              onChange={() => handleProjectToggle(project)}
+                              className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                            />
+                            <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                              {project}
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
 
-              {/* Clear Filters Button */}
-              <button
-                onClick={handleClearFilters}
-                className="w-full px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 font-medium transition-colors text-sm"
-              >
-                Clear All Filters
-              </button>
+                {/* Filter by Tags (collapsible) */}
+                {uniqueTags.length > 0 && (
+                  <div className="mb-6">
+                    <button
+                      type="button"
+                      onClick={() => setIsTagsOpen((o) => !o)}
+                      aria-expanded={isTagsOpen}
+                      aria-controls="home-tags-filter"
+                      className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-left"
+                    >
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Tags
+                      </span>
+                      <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">
+                        {filters.tags.length > 0 ? `(${filters.tags.length} selected)` : ''}
+                      </span>
+                      <svg
+                        className={`ml-auto h-4 w-4 text-gray-500 dark:text-gray-400 transition-transform ${isTagsOpen ? 'transform rotate-180' : ''}`}
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                        aria-hidden="true"
+                      >
+                        <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 011.08 1.04l-4.25 4.25a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                    {isTagsOpen && (
+                      <div id="home-tags-filter" className="space-y-2 max-h-40 overflow-y-auto mt-3">
+                        {uniqueTags.map((tag) => (
+                          <label key={tag} className="flex items-center">
+                            <input
+                              type="checkbox"
+                              checked={filters.tags.includes(tag)}
+                              onChange={() => handleTagToggle(tag)}
+                              className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                            />
+                            <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                              {tag}
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Filter by Month */}
+                {uniqueMonths.length > 0 && (
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Month
+                    </label>
+                    <select
+                      name="month"
+                      value={filters.month}
+                      onChange={handleFilterChange}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white text-sm"
+                    >
+                      <option value="">All Months</option>
+                      {uniqueMonths.map((month) => {
+                        const [year, monthNum] = month.split('-');
+                        const date = new Date(year, parseInt(monthNum) - 1);
+                        return (
+                          <option key={month} value={month}>
+                            {date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}
+                          </option>
+                        );
+                      })}
+                    </select>
+                  </div>
+                )}
+
+                {/* Filter by Year */}
+                {uniqueYears.length > 0 && (
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Year
+                    </label>
+                    <select
+                      name="year"
+                      value={filters.year}
+                      onChange={handleFilterChange}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white text-sm"
+                    >
+                      <option value="">All Years</option>
+                      {uniqueYears.map((year) => (
+                        <option key={year} value={year}>
+                          {year}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {/* Clear Filters Button */}
+                <button
+                  onClick={handleClearFilters}
+                  className="w-full px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 font-medium transition-colors text-sm"
+                >
+                  Clear All Filters
+                </button>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Blog List */}
-          <div className="lg:col-span-3">
+          <div className={isFilterPanelOpen ? 'lg:col-span-3' : 'lg:col-span-4'}>
             {loading ? (
               <div className="text-center py-12">
                 <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -502,7 +527,10 @@ export default function Home() {
                           </td>
                           <td className="px-6 py-4">
                             <div className="text-sm">
-                              <p className="font-medium text-gray-900 dark:text-white">
+                              <p
+                                onClick={(e) => handleViewStudentDetail(blog.author, e)}
+                                className={`font-medium ${isAdmin ? 'text-blue-600 dark:text-blue-400 hover:underline cursor-pointer' : 'text-gray-900 dark:text-white'}`}
+                              >
                                 {blog.author?.name}
                               </p>
                               <p className="text-gray-600 dark:text-gray-400">
@@ -549,7 +577,7 @@ export default function Home() {
                             )}
                           </td>
                           <td className="px-6 py-4">
-                            <span className="text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                            <span className="text-sm text-gray-700 dark:text-gray-300 whitespace-normal break-words">
                               {formatDate(blog.createdAt)}
                             </span>
                           </td>
@@ -572,7 +600,10 @@ export default function Home() {
                       </h3>
                       <div className="space-y-2 text-sm">
                         <div>
-                          <p className="font-medium text-gray-700 dark:text-gray-300">
+                          <p
+                            onClick={(e) => handleViewStudentDetail(blog.author, e)}
+                            className={`font-medium ${isAdmin ? 'text-blue-600 dark:text-blue-400 hover:underline cursor-pointer' : 'text-gray-700 dark:text-gray-300'}`}
+                          >
                             {blog.author?.name}
                           </p>
                           <p className="text-gray-600 dark:text-gray-400">
