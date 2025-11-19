@@ -36,6 +36,7 @@ export const usersAPI = {
   getStudents: () => api.get('/users'),
   deleteStudent: (id) => api.delete(`/users/${id}`),
   resetStudentPassword: (id, passwordData) => api.put(`/users/${id}/reset-password`, passwordData),
+  changeStudentEmail: (id, emailData) => api.put(`/users/${id}/change-email`, emailData),
 };
 
 // Blogs API

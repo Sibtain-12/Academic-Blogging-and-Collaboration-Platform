@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const generateToken = require('../utils/generateToken');
+const { notifyStudentCreated } = require('../services/emailService');
 
 // @desc    Login user
 // @route   POST /api/auth/login
@@ -95,6 +96,15 @@ exports.register = async (req, res) => {
       email,
       password,
       role: 'student',
+    });
+
+    // Send welcome email with credentials asynchronously (non-blocking)
+    setImmediate(() => {
+      notifyStudentCreated(name, email, password)
+        .catch((error) => {
+          console.error('Error sending student creation email:', error);
+          // Don't throw - email failure shouldn't block the response
+        });
     });
 
     res.status(201).json({

@@ -21,6 +21,8 @@ The Academic Blogging and Collaboration Platform is a modern web application des
 - **Draft & Publish**: Save drafts and publish when ready
 - **Edit Published Blogs**: Modify published content anytime
 - **Blog Metadata**: Add title, project, tags, and descriptions
+- **Timestamp Management**: Separate tracking of creation, publication, and update times
+- **Status Tracking**: Draft and published status with proper filtering
 
 ### 🧮 Mathematical Support
 - **KaTeX Integration**: Full LaTeX equation support
@@ -38,10 +40,54 @@ The Academic Blogging and Collaboration Platform is a modern web application des
 - **Table Support**: Export tables with proper formatting
 - **Image Preservation**: Images embedded in exported files
 
-### 👥 User Features
-- **User Authentication**: Secure login and registration
+### 👥 User Management & Admin Features
+- **User Authentication**: Secure login and JWT-based authentication
+- **Role-Based Access**: Admin and Student roles with different permissions
+- **Student Management**: Admin can create, view, and manage students
+- **Password Reset**: Admin can reset student passwords
+- **Email Change**: Admin can change student email addresses
 - **User Profiles**: Manage user information
-- **Collaboration**: Share and collaborate on blog posts
+
+### 📧 Email Notifications System
+- **Student Creation Emails**: Automatic welcome email with login credentials when admin creates student
+- **Blog Publication Emails**: Notify all users when a blog is published
+- **Comment Notifications**: Notify users when comments are added to published blogs
+- **Secure Credentials**: Student credentials sent via email with security instructions
+- **Multi-Provider Support**: Gmail, SendGrid, or custom SMTP support
+- **Non-blocking Delivery**: Async email sending doesn't delay API responses
+
+### 📊 Dashboard & Analytics
+- **Student Dashboard**: View personal blogs with statistics
+- **Admin Dashboard**: View platform-wide statistics and user analytics
+- **Blog Statistics**: Track blog count, comments, and engagement
+- **User Statistics**: Admin can view individual student analytics
+
+### 🗑️ Data Management
+- **Cascade Deletion**: Deleting a student automatically removes their blogs and comments
+- **Data Integrity**: Maintains referential integrity across database
+- **Orphan Prevention**: No orphaned records in database
+
+### 🎨 UI/UX Features
+- **Dark Mode Support**: Complete dark theme support across the platform
+- **Responsive Design**: Mobile-friendly interface with Tailwind CSS
+- **Clean Navigation**: Intuitive navigation with navbar
+- **Loading States**: Smooth loading indicators
+- **Error Handling**: User-friendly error messages and validation
+- **Toast Notifications**: Real-time feedback for user actions
+
+### 🔍 Search & Filtering
+- **Student Search**: Admin can search students by name
+- **Blog Filtering**: Filter blogs by status, tags, and projects
+- **Recent Blogs**: View recently published blogs
+
+### 🔐 Security Features
+- **JWT Authentication**: Secure token-based authentication
+- **Password Hashing**: bcryptjs for secure password storage
+- **Protected Routes**: Role-based access control
+- **Admin-Only Actions**: Certain actions restricted to admins
+- **CORS Configuration**: Controlled cross-origin requests
+- **Rate Limiting**: Login endpoint rate limiting
+- **Environment Variables**: Sensitive data in .env files
 
 ---
 
@@ -62,13 +108,15 @@ The Academic Blogging and Collaboration Platform is a modern web application des
 
 ### Backend
 - **Node.js**: JavaScript runtime
-- **Express 5.1.0**: Web framework
+- **Express 5.1.0**: Web framework with rate limiting middleware
 - **MongoDB**: NoSQL database
-- **Mongoose**: MongoDB ODM
-- **AWS SDK v2**: AWS S3 integration
-- **JWT**: Authentication tokens
-- **bcryptjs**: Password hashing
+- **Mongoose**: MongoDB ODM with schema validation
+- **JWT (jsonwebtoken)**: Secure token-based authentication
+- **bcryptjs**: Password hashing and comparison
+- **nodemailer**: Email sending service
 - **dotenv**: Environment variable management
+- **AWS SDK v2**: AWS S3 integration
+- **express-rate-limit**: Rate limiting middleware
 
 ### Cloud & Storage
 - **AWS S3**: Cloud image storage
@@ -116,6 +164,7 @@ Create a `.env` file in the `backend` directory:
 # Server Configuration
 PORT=5000
 NODE_ENV=development
+FRONTEND_URL=http://localhost:5173
 
 # Database Configuration
 MONGODB_URI=mongodb://localhost:27017/academic-blog
@@ -131,6 +180,27 @@ AWS_ACCESS_KEY_ID=your_aws_access_key
 AWS_SECRET_ACCESS_KEY=your_aws_secret_key
 AWS_REGION=us-east-1
 AWS_S3_BUCKET_NAME=academic-blog-images
+
+# Email Configuration (Choose one provider)
+# Gmail
+EMAIL_SERVICE=gmail
+GMAIL_EMAIL=your-email@gmail.com
+GMAIL_PASSWORD=your-app-password
+
+# OR SendGrid
+# EMAIL_SERVICE=sendgrid
+# SENDGRID_API_KEY=your_sendgrid_api_key
+
+# OR Custom SMTP
+# EMAIL_SERVICE=smtp
+# SMTP_HOST=smtp.example.com
+# SMTP_PORT=587
+# SMTP_SECURE=false
+# SMTP_USER=your-email@example.com
+# SMTP_PASSWORD=your-password
+
+# Common Email Settings
+EMAIL_FROM=noreply@yourdomain.com
 ```
 
 #### 2.4 Start Backend Server
@@ -181,6 +251,7 @@ The application will be available at `http://localhost:5173`
 |----------|-------------|---------|
 | `PORT` | Server port | `5000` |
 | `NODE_ENV` | Environment | `development` |
+| `FRONTEND_URL` | Frontend URL for email links | `http://localhost:5173` |
 | `MONGODB_URI` | MongoDB connection string | `mongodb://localhost:27017/academic-blog` |
 | `JWT_SECRET` | JWT signing secret | `your_secret_key` |
 | `JWT_EXPIRE` | JWT expiration time | `7d` |
@@ -188,6 +259,16 @@ The application will be available at `http://localhost:5173`
 | `AWS_SECRET_ACCESS_KEY` | AWS secret key | From AWS IAM |
 | `AWS_REGION` | AWS region | `us-east-1` |
 | `AWS_S3_BUCKET_NAME` | S3 bucket name | `academic-blog-images` |
+| `EMAIL_SERVICE` | Email provider | `gmail`, `sendgrid`, or `smtp` |
+| `GMAIL_EMAIL` | Gmail address (if using Gmail) | `your-email@gmail.com` |
+| `GMAIL_PASSWORD` | Gmail app password (if using Gmail) | From Gmail settings |
+| `SENDGRID_API_KEY` | SendGrid API key (if using SendGrid) | From SendGrid dashboard |
+| `SMTP_HOST` | SMTP host (if using SMTP) | `smtp.example.com` |
+| `SMTP_PORT` | SMTP port (if using SMTP) | `587` |
+| `SMTP_SECURE` | Use TLS (if using SMTP) | `false` or `true` |
+| `SMTP_USER` | SMTP username (if using SMTP) | `your-email@example.com` |
+| `SMTP_PASSWORD` | SMTP password (if using SMTP) | `your-password` |
+| `EMAIL_FROM` | Sender email address | `noreply@yourdomain.com` |
 
 ### Frontend Environment Variables
 
@@ -264,6 +345,90 @@ The backend automatically configures CORS on startup. Check the console for:
 
 ---
 
+## 📚 Usage Guide
+
+### Admin Features
+
+#### Managing Students
+
+1. **Navigate to Manage Students**: Click "Manage Students" in the admin menu
+2. **Add New Student**:
+   - Click "Add Student" button
+   - Enter student name, email, and password
+   - Student receives welcome email with credentials
+   - Student can login immediately
+3. **Search Students**: Use search bar to find students by name
+4. **Student Actions** (Click on student row):
+   - **Reset Password**: Generate and send new password via email
+   - **Change Email**: Update student's email address
+   - **Remove Student**: Delete student and all their blogs/comments
+
+#### View Analytics
+
+1. **Admin Dashboard**: View platform statistics
+2. **Student Analytics**: View individual student's blog count and engagement
+3. **Blog Performance**: See published vs draft blog counts
+
+### Creating a Blog Post
+
+1. Click **"Create New Blog"**
+2. Enter blog title
+3. Add content using the rich text editor
+4. Insert images using the image button
+5. Add mathematical equations using KaTeX syntax
+6. Click **"Save as Draft"** or **"Publish"**
+
+### Uploading Images
+
+1. Click the **image icon** in the editor toolbar
+2. Select an image from your computer
+3. Image uploads to AWS S3 automatically
+4. Image appears in the editor
+
+### Exporting to PDF
+
+1. Open a blog post
+2. Click **"PDF"** button
+3. PDF downloads with all formatting and images
+
+### Exporting to Word
+
+1. Open a blog post
+2. Click **"Word"** button
+3. Word document (.docx) downloads with formatting
+
+### Adding Mathematical Equations
+
+Use KaTeX syntax:
+- **Inline**: `$E = mc^2$`
+- **Block**: `$$\frac{-b \pm \sqrt{b^2 - 4ac}}{2a}$$`
+
+### Email Notifications
+
+The platform automatically sends emails for:
+
+1. **Student Creation**: 
+   - Email sent when admin creates new student
+   - Includes login credentials and welcome message
+   - Link to login page provided
+
+2. **Blog Published**:
+   - Email sent to all users when blog is published
+   - Includes blog title and link to view
+   - Only sent when status changes from draft to published
+
+3. **Comment Added**:
+   - Email sent to all users when comment is added to published blog
+   - Includes blog title and link to view
+   - Notifies author and other users about engagement
+
+**Setting Up Email**:
+- Configure one email provider (Gmail, SendGrid, or SMTP) in `.env`
+- Emails are sent asynchronously (non-blocking)
+- Email failures don't prevent main operation
+
+---
+
 ## 🐛 Troubleshooting
 
 ### Issue: Images Not Showing in PDF/Word Exports
@@ -278,6 +443,24 @@ The backend automatically configures CORS on startup. Check the console for:
 
 **Manual Fix**:
 - Configure CORS manually in AWS S3 console (see AWS S3 CORS Configuration section)
+
+### Issue: Emails Not Sending
+
+**Cause**: Email service not configured or credentials incorrect
+
+**Solution**:
+1. Verify email provider is configured in `.env`
+2. Check credentials match provider requirements:
+   - **Gmail**: Use app-specific password, not account password
+   - **SendGrid**: Verify API key is valid
+   - **SMTP**: Test connection manually
+3. Check email logs in backend console
+4. Verify `EMAIL_FROM` and `FRONTEND_URL` are set
+
+**Gmail Setup**:
+1. Enable 2-factor authentication
+2. Create app-specific password: https://myaccount.google.com/apppasswords
+3. Use app password in `GMAIL_PASSWORD`
 
 ### Issue: "AWS S3 not configured" Error
 
@@ -306,28 +489,121 @@ The backend automatically configures CORS on startup. Check the console for:
 2. Check bucket name is correct
 3. Ensure bucket exists in correct region
 
+### Issue: Null Reference Error on Deleted Student's Blog
+
+**Cause**: Orphaned blogs from deleted students (should not occur with v2.0+)
+
+**Solution**:
+1. Update to latest version (student deletion now cascades)
+2. Manually delete orphaned blogs via MongoDB
+3. Check frontend has null-safety checks for author
+
+### Issue: Admin Actions (Reset Password, Change Email) Not Working
+
+**Cause**: Click-outside listener closing dropdown before action completes
+
+**Solution**:
+1. Update to latest version with portal rendering fix
+2. Ensure dropdownRef is properly attached
+3. Check browser console for errors
+
+### Issue: Student Not Receiving Welcome Email
+
+**Cause**: Email service error or configuration issue
+
+**Solution**:
+1. Check backend console logs for email errors
+2. Verify email configuration in `.env`
+3. Check student email address is valid
+4. Verify email is not in spam folder
+5. Check email provider's sending limits
+
 ---
 
 ## 📝 API Endpoints
 
 ### Authentication
-- `POST /api/auth/register` - Register new user
+- `POST /api/auth/register` - Register new student (admin only)
 - `POST /api/auth/login` - Login user
-- `POST /api/auth/logout` - Logout user
+- `GET /api/auth/me` - Get current user
+- `PUT /api/auth/change-password` - Change password
+
+### User Management
+- `GET /api/users` - Get all students (admin only)
+- `DELETE /api/users/:id` - Delete student (admin only)
+- `PUT /api/users/:id/reset-password` - Reset student password (admin only)
+- `PUT /api/users/:id/change-email` - Change student email (admin only)
 
 ### Blogs
-- `GET /api/blogs` - Get all blogs
+- `GET /api/blogs` - Get all published blogs
+- `GET /api/blogs/drafts` - Get user's draft blogs
 - `POST /api/blogs` - Create new blog
 - `GET /api/blogs/:id` - Get blog by ID
 - `PUT /api/blogs/:id` - Update blog
 - `DELETE /api/blogs/:id` - Delete blog
 
-### Images
+### Comments
+- `GET /api/comments/:blogId` - Get comments for blog
+- `POST /api/comments` - Add comment to blog
+- `DELETE /api/comments/:id` - Delete comment
+
+### Dashboard
+- `GET /api/dashboard/admin` - Get admin statistics (admin only)
+- `GET /api/dashboard/student` - Get student statistics
+
+### Admin Analytics
+- `GET /api/admin/student-analytics` - Get student analytics (admin only)
+- `GET /api/admin/student/:studentId/blogs` - Get student's blogs (admin only)
+
+### File Upload
 - `POST /api/upload` - Upload image to S3
 
 ---
 
-## 🤝 Contributing
+## 🆕 Recent Updates & Features
+
+### Version 2.0 - Admin & Email Features
+
+#### New Admin Capabilities
+- ✅ Student account creation with auto-generated passwords
+- ✅ Student account deletion with cascade cleanup
+- ✅ Password reset for students
+- ✅ Email address changes for students
+- ✅ Student search and filtering
+- ✅ Admin-only dashboard with analytics
+
+#### Email Notification System
+- ✅ Automatic welcome emails for new students (with login credentials)
+- ✅ Blog publication notifications to all users
+- ✅ Comment notifications for published blogs
+- ✅ Multi-provider email support (Gmail, SendGrid, SMTP)
+- ✅ Async non-blocking email delivery
+
+#### Timestamp Enhancements
+- ✅ Separate tracking: createdAt, publishedAt, updatedAt
+- ✅ Proper display of publication and update dates
+- ✅ Draft blogs show creation date only
+- ✅ Published blogs show publication and update times
+
+#### Portal Rendering & UI
+- ✅ Fixed React validation warnings using portal rendering
+- ✅ Improved ManageStudents page with better UI/UX
+- ✅ Interactive dropdown menus with click-outside detection
+- ✅ Enhanced dark mode support throughout
+
+#### Data Integrity
+- ✅ Cascade deletion: Removing student deletes their blogs and comments
+- ✅ Orphan prevention: No null author references in database
+- ✅ Frontend null checks: Safe handling of missing author data
+- ✅ Database consistency maintained
+
+#### Fixed Issues
+- ✅ Fixed null reference error when accessing deleted student's blogs
+- ✅ Fixed dropdown functionality in ManageStudents
+- ✅ Fixed HTML nesting violations in React components
+- ✅ Fixed email sending errors with proper error handling
+
+---
 
 Contributions are welcome! Please follow these steps:
 
@@ -372,46 +648,119 @@ For issues, questions, or suggestions, please:
 academic-blogging-platform/
 ├── backend/
 │   ├── config/
-│   │   └── aws.js                 # AWS S3 configuration
+│   │   ├── aws.js                 # AWS S3 configuration
+│   │   └── db.js                  # MongoDB connection
 │   ├── controllers/
-│   │   ├── authController.js      # Authentication logic
+│   │   ├── authController.js      # Authentication and registration
 │   │   ├── blogController.js      # Blog CRUD operations
-│   │   └── uploadController.js    # Image upload to S3
+│   │   ├── commentController.js   # Comment management
+│   │   ├── dashboardController.js # Dashboard statistics
+│   │   ├── userController.js      # User management (admin)
+│   │   ├── uploadController.js    # Image upload to S3
+│   │   └── adminController.js     # Admin analytics
 │   ├── models/
-│   │   ├── User.js                # User schema
-│   │   └── Blog.js                # Blog schema
+│   │   ├── User.js                # User schema with roles
+│   │   ├── Blog.js                # Blog schema with timestamps
+│   │   └── Comment.js             # Comment schema
 │   ├── routes/
 │   │   ├── auth.js                # Auth routes
 │   │   ├── blogs.js               # Blog routes
+│   │   ├── comments.js            # Comment routes
+│   │   ├── users.js               # User management routes
+│   │   ├── dashboard.js           # Dashboard routes
+│   │   ├── admin.js               # Admin routes
 │   │   └── upload.js              # Upload routes
 │   ├── middleware/
-│   │   └── auth.js                # JWT authentication
+│   │   ├── auth.js                # JWT authentication & authorization
+│   │   ├── error.js               # Error handling
+│   │   └── upload.js              # File upload middleware
+│   ├── services/
+│   │   └── emailService.js        # Email notifications
+│   ├── utils/
+│   │   └── generateToken.js       # JWT token generation
 │   ├── .env                       # Environment variables
-│   ├── .env.example               # Example env file
 │   ├── server.js                  # Express server entry point
 │   └── package.json
 │
 ├── frontend/
 │   ├── src/
 │   │   ├── components/
-│   │   │   ├── BlogEditor.jsx     # Main blog editor with Quill
-│   │   │   ├── BlogList.jsx       # List of blogs
-│   │   │   └── BlogView.jsx       # Blog view page
+│   │   │   ├── Layout.jsx         # Main layout with navbar
+│   │   │   ├── ProtectedRoute.jsx # Route protection
+│   │   │   ├── Loading.jsx        # Loading component
+│   │   │   ├── Navbar.jsx         # Navigation bar
+│   │   │   ├── ResetPasswordModal.jsx   # Reset password modal
+│   │   │   ├── ChangeEmailModal.jsx    # Change email modal
+│   │   │   └── FindReplaceModal.jsx    # Find/replace in editor
+│   │   ├── context/
+│   │   │   ├── AuthContext.jsx    # Authentication state
+│   │   │   └── ThemeContext.jsx   # Dark/light theme
 │   │   ├── pages/
-│   │   │   ├── Home.jsx           # Home page
+│   │   │   ├── Home.jsx           # Home page with blog list
 │   │   │   ├── Login.jsx          # Login page
-│   │   │   ├── Register.jsx       # Registration page
-│   │   │   └── Dashboard.jsx      # User dashboard
-│   │   ├── api/
-│   │   │   └── api.js             # API client
+│   │   │   ├── BlogDetail.jsx     # Blog detail and comments
+│   │   │   ├── BlogEditor.jsx     # Blog editor with Quill
+│   │   │   ├── Dashboard.jsx      # Student dashboard
+│   │   │   ├── ManageStudents.jsx # Admin student management
+│   │   │   ├── AdminBlogDetail.jsx # Admin blog view
+│   │   │   └── UserStatistics.jsx # User analytics
+│   │   ├── services/
+│   │   │   └── api.js             # Centralized API client
+│   │   ├── utils/
+│   │   │   ├── helpers.js         # Utility functions
+│   │   │   └── quillCustomBlots.js # Custom Quill blots
 │   │   ├── App.jsx                # Main app component
-│   │   └── main.jsx               # Entry point
+│   │   ├── main.jsx               # Entry point
+│   │   ├── App.css                # App styles
+│   │   └── index.css              # Global styles
 │   ├── .env                       # Environment variables
 │   ├── vite.config.js             # Vite configuration
+│   ├── tailwind.config.js         # Tailwind CSS config
+│   ├── postcss.config.js          # PostCSS config
 │   └── package.json
 │
 ├── README.md                      # This file
 └── .gitignore
+```
+
+---
+
+## 🔄 Workflow
+
+### Blog Creation Workflow
+
+```
+1. User clicks "Create New Blog"
+   ↓
+2. BlogEditor component loads with Quill editor
+   ↓
+3. User enters title and content
+   ↓
+4. User uploads images (uploaded to AWS S3)
+   ↓
+5. User adds mathematical equations (KaTeX)
+   ↓
+6. User clicks "Save as Draft" or "Publish"
+   ↓
+7. Blog saved to MongoDB
+   ↓
+8. Blog appears in user's blog list
+```
+
+### Export Workflow
+
+```
+1. User opens published blog
+   ↓
+2. User clicks "PDF" or "Word" button
+   ↓
+3. Frontend processes blog content
+   ↓
+4. Images converted to base64 (CORS required)
+   ↓
+5. HTML converted to PDF/Word format
+   ↓
+6. File downloaded to user's computer
 ```
 
 ---
@@ -492,6 +841,36 @@ npm test
 - [MongoDB Documentation](https://docs.mongodb.com/)
 - [React Documentation](https://react.dev/)
 - [Express Documentation](https://expressjs.com/)
+
+---
+
+## 🐛 Known Issues
+
+### CORS Policy Blocking Images
+- **Status**: ✅ Fixed
+- **Solution**: CORS automatically configured on backend startup
+- **Workaround**: Manual CORS configuration in AWS S3 console
+
+### Large File Exports
+- **Status**: Known limitation
+- **Note**: Very large blogs (>10MB) may take longer to export
+- **Recommendation**: Break into multiple posts
+
+### Email Delivery Delays
+- **Status**: Expected behavior
+- **Note**: Emails sent asynchronously (non-blocking)
+- **Impact**: Emails may arrive after API response completes
+- **Benefit**: Improved performance and reliability
+
+### Null Reference on Deleted Student's Blog
+- **Status**: ✅ Fixed in v2.0
+- **Solution**: Student deletion now cascades delete blogs and comments
+- **Impact**: No more orphaned blog records
+
+### Admin Dropdown Not Responding
+- **Status**: ✅ Fixed in v2.0
+- **Solution**: Implemented portal rendering for dropdown
+- **Impact**: Actions (Reset Password, Change Email) now work correctly
 
 ---
 

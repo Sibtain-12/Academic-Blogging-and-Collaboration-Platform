@@ -25,6 +25,10 @@ export default function BlogDetail() {
     try {
       const response = await blogsAPI.getBlog(id);
       setBlog(response.data.blog);
+      if (response.data.blog.updatedAt && response.data.blog.publishedAt) {
+        const updatedTime = new Date(response.data.blog.updatedAt).getTime();
+        const publishedTime = new Date(response.data.blog.publishedAt).getTime();
+      }
     } catch (error) {
       toast.error('Failed to fetch blog');
       navigate('/home');
@@ -83,8 +87,8 @@ export default function BlogDetail() {
     }
   };
 
-  const canEditBlog = blog && (blog.author._id === user?.id || isAdmin);
-  const canDeleteBlog = blog && (blog.author._id === user?.id || isAdmin);
+  const canEditBlog = blog && blog.author && (blog.author._id === user?.id || isAdmin);
+  const canDeleteBlog = blog && blog.author && (blog.author._id === user?.id || isAdmin);
 
   if (loading) {
     return (
@@ -106,12 +110,16 @@ export default function BlogDetail() {
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">{blog.title}</h1>
             <div className="flex items-center text-sm text-gray-600 dark:text-gray-400 space-x-4">
               <span className="font-medium">{blog.author?.name}</span>
-              <span>•</span>
-              <span>Published {formatDate(blog.createdAt)}</span>
-              {blog.updatedAt !== blog.createdAt && (
+              {blog.status === 'published' && (
                 <>
                   <span>•</span>
-                  <span>Updated {formatRelativeTime(blog.updatedAt)}</span>
+                  <span>Published on {formatDate(blog.publishedAt || blog.createdAt)}</span>
+                  {blog.updatedAt && blog.publishedAt && new Date(blog.updatedAt).getTime() !== new Date(blog.publishedAt).getTime() && (
+                    <>
+                      <span>•</span>
+                      <span>Last updated on {formatDate(blog.updatedAt)}</span>
+                    </>
+                  )}
                 </>
               )}
             </div>
@@ -193,9 +201,8 @@ export default function BlogDetail() {
           ) : (
             comments.map((comment) => {
               const canDeleteComment =
-                comment.author._id === user?.id ||
-                blog.author._id === user?.id ||
-                isAdmin;
+                comment.author && (comment.author._id === user?.id ||
+                isAdmin);
 
               return (
                 <div

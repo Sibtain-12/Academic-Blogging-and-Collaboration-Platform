@@ -47,16 +47,16 @@ export default function Navbar() {
               {isAdmin && (
                 <>
                   <Link
-                    to="/admin/students"
-                    className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 px-3 py-2 rounded-md text-sm font-medium"
-                  >
-                    Manage Students
-                  </Link>
-                  <Link
                     to="/user-statistics"
                     className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 px-3 py-2 rounded-md text-sm font-medium"
                   >
                     User Statistics
+                  </Link>
+                  <Link
+                    to="/admin/students"
+                    className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 px-3 py-2 rounded-md text-sm font-medium"
+                  >
+                    Manage Students
                   </Link>
                 </>
               )}

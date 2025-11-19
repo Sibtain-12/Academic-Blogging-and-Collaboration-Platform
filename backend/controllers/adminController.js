@@ -2,11 +2,6 @@ const mongoose = require('mongoose');
 const Blog = require('../models/Blog');
 const User = require('../models/User');
 
-// @desc    Get student analytics (blog statistics per student, excluding admin)
-// @route   GET /api/admin/student-analytics
-// @access  Private/Admin
-// @query   tag - optional filter by tag
-// @query   project - optional filter by project
 exports.getStudentAnalytics = async (req, res) => {
   try {
     const { tag, project } = req.query;
@@ -159,11 +154,6 @@ exports.getStudentAnalytics = async (req, res) => {
   }
 };
 
-// @desc    Get filtered blogs for a specific student
-// @route   GET /api/admin/student/:studentId/blogs
-// @access  Private/Admin
-// @query   tag - optional filter by tag
-// @query   project - optional filter by project
 exports.getStudentBlogs = async (req, res) => {
   try {
     const { studentId } = req.params;

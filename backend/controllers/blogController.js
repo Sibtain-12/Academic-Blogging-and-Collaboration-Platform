@@ -1,5 +1,6 @@
 const Blog = require('../models/Blog');
 const Comment = require('../models/Comment');
+const { notifyBlogPublished } = require('../services/emailService');
 
 // @desc    Get all published blogs with filters
 // @route   GET /api/blogs
@@ -126,9 +127,21 @@ exports.createBlog = async (req, res) => {
       project,
       status: status || 'draft',
       author: req.user.id,
+      publishedAt: (status === 'published') ? Date.now() : null,
     });
 
     const populatedBlog = await Blog.findById(blog._id).populate('author', 'name email');
+
+    // Send email notification asynchronously (non-blocking) if blog is published
+    if (populatedBlog.status === 'published') {
+      setImmediate(async () => {
+        try {
+          await notifyBlogPublished(populatedBlog, populatedBlog.author.name);
+        } catch (emailError) {
+          console.error('⚠️ Email notification failed:', emailError.message);
+        }
+      });
+    }
 
     res.status(201).json({
       success: true,
@@ -166,18 +179,39 @@ exports.updateBlog = async (req, res) => {
 
     const { title, content, tags, project, status } = req.body;
 
-    blog = await Blog.findByIdAndUpdate(
-      req.params.id,
-      {
-        title,
-        content,
-        tags,
-        project,
-        status,
-        updatedAt: Date.now(),
-      },
-      { new: true, runValidators: true }
-    ).populate('author', 'name email');
+    const wasPublished = blog.status === 'published';
+    const isBeingPublished = status === 'published' && !wasPublished;
+
+    // Update fields
+    blog.title = title;
+    blog.content = content;
+    blog.tags = tags;
+    blog.project = project;
+    blog.status = status;
+
+    // Set publishedAt only when transitioning from draft to published
+    // Do NOT modify publishedAt if status is draft or blog is already published
+    if (isBeingPublished) {
+      blog.publishedAt = Date.now();
+    } else if (status === 'draft') {
+      // Ensure publishedAt stays null for draft blogs
+      blog.publishedAt = null;
+    }
+
+    // Save will trigger pre-save hook to update updatedAt
+    blog = await blog.save();
+    await blog.populate('author', 'name email');
+
+    // Send email notification asynchronously (non-blocking) when transitioning from draft to published
+    if (isBeingPublished) {
+      setImmediate(async () => {
+        try {
+          await notifyBlogPublished(blog, blog.author.name);
+        } catch (emailError) {
+          console.error('⚠️ Email notification failed:', emailError.message);
+        }
+      });
+    }
 
     res.status(200).json({
       success: true,

@@ -1,5 +1,6 @@
 const Comment = require('../models/Comment');
 const Blog = require('../models/Blog');
+const { notifyCommentAdded } = require('../services/emailService');
 
 // @desc    Get all comments for a blog
 // @route   GET /api/comments/:blogId
@@ -62,6 +63,16 @@ exports.createComment = async (req, res) => {
     });
 
     const populatedComment = await Comment.findById(comment._id).populate('author', 'name email');
+
+    // Send email notification asynchronously (non-blocking)
+    setImmediate(async () => {
+      try {
+        const populatedBlog = await Blog.findById(blogId).populate('author', 'name email');
+        await notifyCommentAdded(populatedComment, populatedBlog, populatedComment.author.name);
+      } catch (emailError) {
+        console.error('⚠️ Email notification failed:', emailError.message);
+      }
+    });
 
     res.status(201).json({
       success: true,

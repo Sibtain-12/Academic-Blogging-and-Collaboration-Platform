@@ -546,7 +546,7 @@ export default function Dashboard() {
                           </td>
                           <td className="px-6 py-4">
                             <span className="text-sm text-gray-700 dark:text-gray-300">
-                              {formatDate(blog.createdAt)}
+                              {blog.status === 'published' ? formatDate(blog.publishedAt || blog.createdAt) : '-'}
                             </span>
                           </td>
                           <td className="px-6 py-4">
@@ -609,7 +609,7 @@ export default function Dashboard() {
                       )}
 
                       <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
-                        <span>📅 {formatDate(blog.createdAt)}</span>
+                        <span>📅 {blog.status === 'published' ? formatDate(blog.publishedAt || blog.createdAt) : '-'}</span>
                         {blog.commentCount > 0 && (
                           <button
                             onClick={(e) => {

@@ -12,6 +12,7 @@ import html2pdf from 'html2pdf.js';
 import { Document, Packer, Paragraph, TextRun, HeadingLevel } from 'docx';
 import { saveAs } from 'file-saver';
 import FindReplaceModal from '../components/FindReplaceModal';
+import BlogPreviewModal from '../components/BlogPreviewModal';
 import { PageBreak, SectionBreak } from '../utils/quillCustomBlots';
 
 // Register KaTeX with Quill
@@ -47,6 +48,7 @@ export default function BlogEditor() {
   const [tags, setTags] = useState('');
   const [project, setProject] = useState('');
   const [status, setStatus] = useState('draft');
+  const [isPublished, setIsPublished] = useState(false);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const autoSaveTimer = useRef(null);
@@ -58,6 +60,9 @@ export default function BlogEditor() {
 
   // Find and Replace modal
   const [showFindReplace, setShowFindReplace] = useState(false);
+
+  // Blog Preview modal
+  const [showPreview, setShowPreview] = useState(false);
 
   // Tags and Projects selection
   const [allBlogs, setAllBlogs] = useState([]);
@@ -472,15 +477,8 @@ export default function BlogEditor() {
   // This must be defined AFTER the handlers and modules
   useEffect(() => {
     if (!editorRef.current || quillRef.current) {
-      console.log('⏭️ Skipping Quill initialization:', {
-        editorRefExists: !!editorRef.current,
-        quillRefExists: !!quillRef.current
-      });
       return;
     }
-
-    console.log('🚀 Initializing Quill editor...');
-    console.log('📝 Initial content state:', content?.substring(0, 100) || 'No content');
 
     // Initialize Quill with the modules defined below
     const quill = new Quill(editorRef.current, {
@@ -560,19 +558,13 @@ export default function BlogEditor() {
       placeholder: 'Start writing your academic document here... Use the toolbar for formatting, tables, formulas, and more.',
     });
 
-    console.log('✅ Quill editor initialized successfully');
-    console.log('🔎 quill.root connected?', quill.root?.isConnected, 'parent:', quill.root?.parentElement?.className);
-
     // Set initial content (if any - usually empty on first load)
     if (content) {
-      console.log('📝 Setting initial content to Quill:', content.substring(0, 100));
 
       // Set flag to prevent text-change event from updating state
       isSettingContentRef.current = true;
 
-      console.log('🧩 Before set initial innerHTML:', { connected: quill.root?.isConnected, oldLength: quill.root?.innerHTML?.length, newLength: content.length });
       quill.root.innerHTML = content;
-      console.log('🧩 After set initial innerHTML:', { connected: quill.root?.isConnected, length: quill.root?.innerHTML?.length });
       // Fallback if Quill seems to truncate content
       try {
         const lenNow = (quill.root?.innerHTML || '').replace(/\s/g, '').length;
@@ -590,56 +582,37 @@ export default function BlogEditor() {
         isSettingContentRef.current = false;
       }, 100);
 
-      console.log('✅ Initial content set to Quill');
-    } else {
-      console.log('⚠️ No initial content to set (normal for new blogs or before fetch completes)');
     }
 
     // Listen for text changes (only from user input, not programmatic changes)
     quill.on('text-change', (_delta, _oldDelta, source) => {
       // Skip if we're programmatically setting content
       if (isSettingContentRef.current) {
-        console.log('📝 Quill text-change event - ignoring (programmatic update)');
         return;
       }
 
       if (source === 'user') {
         const newContent = quill.root.innerHTML;
-        console.log('📝 Quill text-change event (user) - updating content state');
         setContent(newContent);
-      } else {
-        console.log('📝 Quill text-change event (api/silent) - ignoring');
       }
     });
 
     // Store quill instance in ref
     quillRef.current = quill;
     window.__quill = quill; // expose for debugging
-    console.log('✅ Quill instance stored in ref');
 
     return () => {
-      console.log('🧹 Cleaning up Quill editor');
       quillRef.current = null;
     };
   }, []); // Only run once on mount
 
   // Update content when fetched from API
   useEffect(() => {
-    console.log('🔄 Content sync useEffect triggered');
-    console.log('📊 State:', {
-      quillRefExists: !!quillRef.current,
-      contentExists: !!content,
-      contentLength: content?.length || 0,
-      hasFocus: quillRef.current?.hasFocus(),
-    });
-
     if (!quillRef.current) {
-      console.log('⏭️ Quill not initialized yet - will update when Quill is ready');
       return;
     }
 
     if (!content) {
-      console.log('⏭️ No content to set');
       return;
     }
 
@@ -647,15 +620,9 @@ export default function BlogEditor() {
     const currentContentStripped = currentContent.replace(/<p><br><\/p>/g, '').trim();
     const newContentStripped = content.replace(/<p><br><\/p>/g, '').trim();
 
-    console.log('📝 Current Quill content length:', currentContent?.length || 0);
-    console.log('📝 Current Quill content (stripped):', currentContentStripped.substring(0, 100));
-    console.log('📝 New content length:', content?.length || 0);
-    console.log('📝 New content (stripped):', newContentStripped.substring(0, 100));
 
     // Update if content is different (ignoring empty paragraphs)
     if (currentContentStripped !== newContentStripped) {
-      console.log('🔄 Content is different - updating Quill editor');
-      console.log('📝 Setting content:', content.substring(0, 200));
 
       // Check if user is currently typing
       const isUserTyping = quillRef.current.hasFocus();
@@ -665,9 +632,7 @@ export default function BlogEditor() {
         isSettingContentRef.current = true;
 
         // Directly set innerHTML - this is the most reliable method for loading saved content
-        console.log('📝 Setting content using innerHTML (editor not focused)', { connected: quillRef.current.root?.isConnected, oldLength: quillRef.current.root?.innerHTML?.length, newLength: content.length });
         quillRef.current.root.innerHTML = content;
-        console.log('📝 After innerHTML set', { connected: quillRef.current.root?.isConnected, length: quillRef.current.root?.innerHTML?.length });
         // Fallback if Quill seems to truncate content
         try {
           const lenNow = (quillRef.current.root?.innerHTML || '').replace(/\s/g, '').length;
@@ -685,39 +650,27 @@ export default function BlogEditor() {
           isSettingContentRef.current = false;
         }, 100);
 
-        console.log('✅ Quill content updated successfully');
-        console.log('📝 Quill now contains:', quillRef.current.root.innerHTML.substring(0, 100));
-      } else {
-        console.log('⏭️ Skipping update - user is typing');
       }
-    } else {
-      console.log('⏭️ Content is the same - skipping update');
     }
   }, [content]);
 
   const fetchBlog = async () => {
     try {
       setLoading(true);
-      console.log('🔍 Fetching blog with ID:', id);
       const response = await blogsAPI.getBlog(id);
       const blog = response.data.blog;
-      console.log('✅ Blog fetched successfully:', blog);
-      console.log('📝 Blog content length:', blog.content?.length || 0);
-      console.log('📝 Blog content preview:', blog.content?.substring(0, 100) || 'No content');
 
       setTitle(blog.title);
       setContent(blog.content);
       setTags(blog.tags?.join(', ') || '');
       setProject(blog.project || '');
       setStatus(blog.status);
+      setIsPublished(blog.status === 'published');
       // Set selected tags and projects
       setSelectedTags(blog.tags || []);
       setSelectedProjects(blog.project ? [blog.project] : []);
 
-      console.log('✅ State updated with blog data');
-      console.log('🎯 Content state set to:', blog.content?.substring(0, 100) || 'No content');
     } catch (error) {
-      console.error('❌ Failed to fetch blog:', error);
       toast.error('Failed to fetch blog');
       navigate('/home');
     } finally {
@@ -739,13 +692,9 @@ export default function BlogEditor() {
       };
 
       if (id) {
-        console.log('Auto-saving blog with ID:', id);
         await blogsAPI.updateBlog(id, blogData);
-        console.log('Auto-save successful');
       } else {
-        console.log('Creating new blog via auto-save');
         const response = await blogsAPI.createBlog(blogData);
-        console.log('Auto-save create successful');
         navigate(`/edit/${response.data.blog._id}`, { replace: true });
       }
     } catch (error) {
@@ -827,16 +776,11 @@ export default function BlogEditor() {
       };
 
       if (id) {
-        console.log('Updating blog with ID:', id);
-        console.log('Blog data:', blogData);
         const response = await blogsAPI.updateBlog(id, blogData);
-        console.log('Update response:', response);
-        toast.success(`Blog ${publishStatus === 'published' ? 'published' : 'saved'} successfully!`);
+        const action = isPublished ? 'updated' : (publishStatus === 'published' ? 'published' : 'saved');
+        toast.success(`Blog ${action} successfully!`);
       } else {
-        console.log('Creating new blog');
-        console.log('Blog data:', blogData);
         const response = await blogsAPI.createBlog(blogData);
-        console.log('Create response:', response);
         toast.success(`Blog ${publishStatus === 'published' ? 'published' : 'saved'} successfully!`);
       }
       navigate('/home');
@@ -872,7 +816,6 @@ export default function BlogEditor() {
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0);
           const base64 = canvas.toDataURL('image/jpeg', 0.95);
-          console.log('✅ Image converted to base64:', url.substring(0, 50));
           resolve(base64);
         } catch (error) {
           console.error('❌ Canvas error:', error);
@@ -891,8 +834,6 @@ export default function BlogEditor() {
 
   // Helper function to process content and convert all images to base64
   const processContentForExport = async (htmlContent) => {
-    console.log('🔄 Processing content for export...');
-    console.log('📝 Original content length:', htmlContent.length);
 
     let processedContent = htmlContent;
 
@@ -900,40 +841,30 @@ export default function BlogEditor() {
     const imgRegex = /<img[^>]*src=["']([^"']+)["'][^>]*>/gi;
     const matches = [...htmlContent.matchAll(imgRegex)];
 
-    console.log('🖼️ Found', matches.length, 'images');
-
     for (let i = 0; i < matches.length; i++) {
       const match = matches[i];
       const originalTag = match[0];
       const imgUrl = match[1];
 
-      console.log(`Processing image ${i + 1}/${matches.length}:`, imgUrl.substring(0, 50));
 
       try {
         const base64 = await imageToBase64(imgUrl);
         const newTag = originalTag.replace(imgUrl, base64);
         processedContent = processedContent.replace(originalTag, newTag);
-        console.log(`✅ Image ${i + 1} converted successfully`);
       } catch (error) {
         console.warn(`⚠️ Could not convert image ${i + 1} (${imgUrl}):`, error.message);
         // Keep original tag if conversion fails
       }
     }
 
-    console.log('✅ Content processing complete');
     return processedContent;
   };
 
   // Export to PDF
   const handleExportPDF = async () => {
     try {
-      console.log('📄 Starting PDF export...');
-      toast.info('Processing images for PDF export...');
-
       // Process content to convert images to base64
       const processedContent = await processContentForExport(content);
-
-      console.log('📝 Processed content length:', processedContent.length);
 
       const element = document.createElement('div');
       element.innerHTML = `
@@ -946,8 +877,6 @@ export default function BlogEditor() {
           <div style="line-height: 1.6;">${processedContent}</div>
         </div>
       `;
-
-      console.log('🎨 Element created, starting html2pdf...');
 
       const opt = {
         margin: 1,
@@ -963,7 +892,6 @@ export default function BlogEditor() {
       };
 
       html2pdf().set(opt).from(element).save();
-      console.log('✅ PDF export completed');
       toast.success('PDF exported successfully!');
     } catch (error) {
       console.error('❌ PDF export error:', error);
@@ -1001,7 +929,6 @@ export default function BlogEditor() {
           const base64 = canvas.toDataURL('image/jpeg', 0.95);
           // Remove data:image/jpeg;base64, prefix for docx
           const base64Data = base64.split(',')[1];
-          console.log('✅ Word image converted:', url.substring(0, 50));
           resolve(base64Data);
         } catch (error) {
           console.error('❌ Canvas error for Word:', error);
@@ -1024,8 +951,6 @@ export default function BlogEditor() {
     const elements = [];
     const parser = new DOMParser();
     const doc = parser.parseFromString(htmlContent, 'text/html');
-
-    console.log('🔍 Parsing HTML content...');
 
     for (const node of doc.body.childNodes) {
       if (node.nodeType === Node.TEXT_NODE) {
@@ -1050,7 +975,6 @@ export default function BlogEditor() {
                 // Handle images in paragraphs
                 try {
                   const imgSrc = child.getAttribute('src');
-                  console.log('🖼️ Found image in paragraph:', imgSrc?.substring(0, 50));
 
                   if (!imgSrc) {
                     console.warn('⚠️ Image has no src attribute');
@@ -1061,10 +985,7 @@ export default function BlogEditor() {
                   const imgWidth = parseInt(child.getAttribute('width')) || 300;
                   const imgHeight = parseInt(child.getAttribute('height')) || 200;
 
-                  console.log('📐 Image dimensions:', imgWidth, 'x', imgHeight);
-
                   const base64 = await imageToBase64ForWord(imgSrc);
-                  console.log('✅ Image embedded in paragraph');
 
                   children.push(new ImageRun({
                     data: base64,
@@ -1117,7 +1038,6 @@ export default function BlogEditor() {
           // Standalone images
           try {
             const imgSrc = node.getAttribute('src');
-            console.log('🖼️ Found standalone image:', imgSrc?.substring(0, 50));
 
             if (!imgSrc) {
               console.warn('⚠️ Standalone image has no src attribute');
@@ -1128,10 +1048,7 @@ export default function BlogEditor() {
             const imgWidth = parseInt(node.getAttribute('width')) || 400;
             const imgHeight = parseInt(node.getAttribute('height')) || 300;
 
-            console.log('📐 Standalone image dimensions:', imgWidth, 'x', imgHeight);
-
             const base64 = await imageToBase64ForWord(imgSrc);
-            console.log('✅ Standalone image embedded');
 
             elements.push(new Paragraph({
               children: [new ImageRun({
@@ -1189,15 +1106,12 @@ export default function BlogEditor() {
   // Export to Word
   const handleExportWord = async () => {
     try {
-      console.log('📄 Starting Word export...');
       toast.info('Processing content for Word export...');
 
       const { ImageRun, Table, TableRow, TableCell } = await import('docx');
 
       // Convert HTML content to docx elements
-      console.log('🔄 Converting HTML to docx elements...');
       const contentElements = await convertHTMLToDocxElements(content);
-      console.log('✅ Converted', contentElements.length, 'elements');
 
       const doc = new Document({
         sections: [{
@@ -1229,11 +1143,8 @@ export default function BlogEditor() {
         }],
       });
 
-      console.log('📦 Packing document...');
       const blob = await Packer.toBlob(doc);
-      console.log('💾 Saving file...');
       saveAs(blob, `${title || 'document'}.docx`);
-      console.log('✅ Word export completed');
       toast.success('Word document exported successfully!');
     } catch (error) {
       console.error('❌ Word export error:', error);
@@ -1334,6 +1245,17 @@ export default function BlogEditor() {
           <div className="flex items-center gap-4">
             {saving && <span className="text-sm text-gray-500">Auto-saving...</span>}
             <div className="flex gap-2">
+              <button
+                onClick={() => setShowPreview(true)}
+                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium text-sm flex items-center gap-2"
+                title="Preview blog as published"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                Preview
+              </button>
               <button
                 onClick={handleExportPDF}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium text-sm flex items-center gap-2"
@@ -1641,19 +1563,21 @@ export default function BlogEditor() {
             />
 
             <div className="flex gap-3 pt-4">
-              <button
-                onClick={() => handleSave('draft')}
-                disabled={loading}
-                className="px-6 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 font-medium disabled:opacity-50"
-              >
-                Save as Draft
-              </button>
+              {!isPublished && (
+                <button
+                  onClick={() => handleSave('draft')}
+                  disabled={loading}
+                  className="px-6 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 font-medium disabled:opacity-50"
+                >
+                  Save as Draft
+                </button>
+              )}
               <button
                 onClick={() => handleSave('published')}
                 disabled={loading}
                 className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium disabled:opacity-50"
               >
-                {loading ? 'Publishing...' : 'Publish'}
+                {loading ? (isPublished ? 'Updating...' : 'Publishing...') : (isPublished ? 'Update' : 'Publish')}
               </button>
               <button
                 onClick={() => navigate('/home')}
@@ -1671,6 +1595,18 @@ export default function BlogEditor() {
         isOpen={showFindReplace}
         onClose={() => setShowFindReplace(false)}
         quillRef={quillRef}
+      />
+
+      {/* Blog Preview Modal */}
+      <BlogPreviewModal
+        isOpen={showPreview}
+        onClose={() => setShowPreview(false)}
+        blog={{
+          title,
+          content,
+          tags: selectedTags,
+          project: selectedProjects.length > 0 ? selectedProjects[0] : '',
+        }}
       />
     </div>
   );

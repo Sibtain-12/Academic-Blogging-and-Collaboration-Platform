@@ -10,9 +10,8 @@ import Home from './pages/Home';
 import BlogDetail from './pages/BlogDetail';
 import BlogEditor from './pages/BlogEditor';
 import Dashboard from './pages/Dashboard';
-import ManageStudents from './pages/ManageStudents';
-import AdminBlogDetail from './pages/AdminBlogDetail';
 import UserStatistics from './pages/UserStatistics';
+import ManageStudents from './pages/ManageStudents';
 
 // Components
 import Layout from './components/Layout';
@@ -43,9 +42,8 @@ function AppRoutes() {
         <Route path="write" element={<BlogEditor />} />
         <Route path="edit/:id" element={<BlogEditor />} />
         <Route path="dashboard" element={<Dashboard />} />
-        <Route path="admin/students" element={<ManageStudents />} />
-        <Route path="admin/student/:studentId/blog/:blogId" element={<AdminBlogDetail />} />
         <Route path="user-statistics" element={<UserStatistics />} />
+        <Route path="admin/students" element={<ManageStudents />} />
       </Route>
       <Route path="*" element={<Navigate to="/home" replace />} />
     </Routes>
