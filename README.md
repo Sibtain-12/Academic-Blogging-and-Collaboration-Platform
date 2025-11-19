@@ -34,12 +34,6 @@ The Academic Blogging and Collaboration Platform is a modern web application des
 - **Image Embedding**: Insert images into blog content
 - **Cloud Storage**: All images stored securely in AWS S3
 
-### 📤 Export Functionality
-- **PDF Export**: Export blog posts to PDF with formatting and images
-- **Word Export**: Export to .docx format with full formatting
-- **Table Support**: Export tables with proper formatting
-- **Image Preservation**: Images embedded in exported files
-
 ### 👥 User Management & Admin Features
 - **User Authentication**: Secure login and JWT-based authentication
 - **Role-Based Access**: Admin and Student roles with different permissions
@@ -62,11 +56,6 @@ The Academic Blogging and Collaboration Platform is a modern web application des
 - **Blog Statistics**: Track blog count, comments, and engagement
 - **User Statistics**: Admin can view individual student analytics
 
-### 🗑️ Data Management
-- **Cascade Deletion**: Deleting a student automatically removes their blogs and comments
-- **Data Integrity**: Maintains referential integrity across database
-- **Orphan Prevention**: No orphaned records in database
-
 ### 🎨 UI/UX Features
 - **Dark Mode Support**: Complete dark theme support across the platform
 - **Responsive Design**: Mobile-friendly interface with Tailwind CSS
@@ -77,7 +66,7 @@ The Academic Blogging and Collaboration Platform is a modern web application des
 
 ### 🔍 Search & Filtering
 - **Student Search**: Admin can search students by name
-- **Blog Filtering**: Filter blogs by status, tags, and projects
+- **Blog Filtering**: Filter blogs by status, tags, projects, month and year
 - **Recent Blogs**: View recently published blogs
 
 ### 🔐 Security Features
@@ -357,8 +346,7 @@ The backend automatically configures CORS on startup. Check the console for:
    - Enter student name, email, and password
    - Student receives welcome email with credentials
    - Student can login immediately
-3. **Search Students**: Use search bar to find students by name
-4. **Student Actions** (Click on student row):
+3. **Student Actions** (Click on student row):
    - **Reset Password**: Generate and send new password via email
    - **Change Email**: Update student's email address
    - **Remove Student**: Delete student and all their blogs/comments
@@ -384,18 +372,6 @@ The backend automatically configures CORS on startup. Check the console for:
 2. Select an image from your computer
 3. Image uploads to AWS S3 automatically
 4. Image appears in the editor
-
-### Exporting to PDF
-
-1. Open a blog post
-2. Click **"PDF"** button
-3. PDF downloads with all formatting and images
-
-### Exporting to Word
-
-1. Open a blog post
-2. Click **"Word"** button
-3. Word document (.docx) downloads with formatting
 
 ### Adding Mathematical Equations
 
@@ -570,12 +546,6 @@ Contributions are welcome! Please follow these steps:
 
 ---
 
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
----
-
 ## 📞 Support
 
 For issues, questions, or suggestions, please:
@@ -701,23 +671,6 @@ academic-blogging-platform/
    ↓
 8. Blog appears in user's blog list
 ```
-
-### Export Workflow
-
-```
-1. User opens published blog
-   ↓
-2. User clicks "PDF" or "Word" button
-   ↓
-3. Frontend processes blog content
-   ↓
-4. Images converted to base64 (CORS required)
-   ↓
-5. HTML converted to PDF/Word format
-   ↓
-6. File downloaded to user's computer
-```
-
 ---
 
 ## 🔐 Security Features
