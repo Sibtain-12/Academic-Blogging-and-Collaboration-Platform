@@ -562,7 +562,7 @@ For issues, questions, or suggestions, please:
 4. **Run backend**: `npm run dev` (from backend directory)
 5. **Run frontend**: `npm run dev` (from frontend directory)
 6. **Open browser**: http://localhost:5173
-7. **Create account** and start blogging!
+7. **Login to account** and start blogging!
 
 ---
 
