@@ -219,7 +219,7 @@ export default function Home() {
       e.stopPropagation();
     }
     if (isAdmin) {
-      navigate('/user-statistics', { state: { selectedStudentId: student._id } });
+      navigate('/user-statistics', { state: { selectedStudentId: student._id, from: 'home' } });
     }
   };
 

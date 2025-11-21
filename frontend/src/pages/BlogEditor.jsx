@@ -473,6 +473,52 @@ export default function BlogEditor() {
     };
   }, []);
 
+  // Enable formula editing by double-click
+  useEffect(() => {
+    const handleFormulaDoubleClick = (e) => {
+      // Check if the target or any parent is a formula span
+      let target = e.target;
+      while (target && target !== document.body) {
+        if (target.classList && target.classList.contains('ql-formula')) {
+          e.preventDefault();
+          e.stopPropagation();
+
+          // Get current formula value
+          const currentFormula = target.getAttribute('data-value') || '';
+          
+          // Prompt user to edit formula
+          const newFormula = prompt('Edit LaTeX formula:', currentFormula);
+          
+          if (newFormula !== null && newFormula.trim() !== '') {
+            // Update the DOM data-value attribute
+            target.setAttribute('data-value', newFormula.trim());
+            
+            // Re-render KaTeX
+            try {
+              target.innerHTML = '';
+              window.katex.render(newFormula.trim(), target, { throwOnError: false });
+            } catch (error) {
+              console.error('KaTeX render error:', error);
+              target.textContent = newFormula.trim();
+            }
+          }
+          return;
+        }
+        target = target.parentNode;
+      }
+    };
+
+    // Wait for editor to be ready, then attach handler to document for better capture
+    const timer = setTimeout(() => {
+      document.addEventListener('dblclick', handleFormulaDoubleClick, true);
+    }, 500);
+
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener('dblclick', handleFormulaDoubleClick, true);
+    };
+  }, []);
+
   // Initialize Quill editor with vanilla Quill (not React wrapper)
   // This must be defined AFTER the handlers and modules
   useEffect(() => {
@@ -534,6 +580,7 @@ export default function BlogEditor() {
             sectionBreak: sectionBreakHandler,
             findReplace: findReplaceHandler,
             'code-block': codeBlockHandler,
+            formula: formulaHandler,
           },
         },
         'better-table': {
@@ -1229,6 +1276,25 @@ export default function BlogEditor() {
       }
     } catch (error) {
       // Silently handle if editor is not ready
+    }
+  };
+
+  // Formula Handler
+  const formulaHandler = () => {
+    const quill = quillRef.current;
+    if (!quill) return;
+
+    const range = quill.getSelection();
+    if (!range) return;
+
+    // Get the formula text from user (default empty for new formula)
+    const formulaText = prompt('Enter a LaTeX formula (e.g., x^2 + y^2 = r^2):');
+    
+    if (formulaText !== null && formulaText.trim() !== '') {
+      // Insert or update formula at cursor position
+      quill.insertEmbed(range.index, 'formula', formulaText.trim());
+      // Move cursor after the formula
+      quill.setSelection(range.index + 1);
     }
   };
 

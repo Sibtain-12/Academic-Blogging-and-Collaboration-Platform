@@ -13,6 +13,7 @@ export default function UserStatistics() {
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedStudent, setSelectedStudent] = useState(null);
+  const [expandedCommentId, setExpandedCommentId] = useState(null);
   const [filters, setFilters] = useState({
     name: '',
     role: [],
@@ -45,8 +46,8 @@ export default function UserStatistics() {
       setLoading(true);
       
       // Fetch all users (both admin and students)
-      const usersResponse = await usersAPI.getStudents();
-      setUsers(usersResponse.data.students || []);
+      const usersResponse = await usersAPI.getAllUsers();
+      setUsers(usersResponse.data.users || []);
 
       // Fetch all blogs
       const blogsResponse = await blogsAPI.getBlogs();
@@ -244,13 +245,19 @@ export default function UserStatistics() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex items-center justify-between">
             <div>
               <button
-                onClick={() => setSelectedStudent(null)}
+                onClick={() => {
+                  if (location.state?.from === 'home') {
+                    navigate('/');
+                  } else {
+                    setSelectedStudent(null);
+                  }
+                }}
                 className="inline-flex items-center mb-4 px-3 py-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 text-sm font-medium transition-colors"
               >
                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
-                Back to List
+                {location.state?.from === 'home' ? 'Back to Home' : 'Back to List'}
               </button>
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
                 {selectedStudent.name}
@@ -346,14 +353,33 @@ export default function UserStatistics() {
               ) : (
                 <div className="space-y-4 max-h-96 overflow-y-auto">
                   {studentComments.map((comment) => (
-                      <div key={comment._id} className="border-l-4 border-green-500 pl-4 pb-4 border-b border-gray-200 dark:border-gray-700">
+                      <div
+                        key={comment._id}
+                        onClick={() => setExpandedCommentId(expandedCommentId === comment._id ? null : comment._id)}
+                        className="border-l-4 border-green-500 pl-4 pb-4 border-b border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 p-3 rounded transition-colors"
+                      >
                         <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
                           on: <span className="font-semibold">{comment.blogTitle || 'Unknown Blog'}</span>
                         </p>
-                        <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
-                          {comment.content}
-                        </p>
-                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                        {expandedCommentId === comment._id ? (
+                          // Expanded view - show full comment
+                          <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded border border-gray-300 dark:border-gray-600">
+                            <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap break-words">
+                              {comment.text || comment.content}
+                            </p>
+                          </div>
+                        ) : (
+                          // Collapsed view - show preview
+                          <>
+                            <p className="text-sm text-gray-700 dark:text-gray-300 mb-2 line-clamp-2">
+                              {comment.text || comment.content}
+                            </p>
+                            <p className="text-xs text-gray-400 dark:text-gray-500 italic">
+                              Click to see full comment
+                            </p>
+                          </>
+                        )}
+                        <span className="text-xs text-gray-500 dark:text-gray-400 block mt-2">
                           {formatDate(comment.createdAt)}
                         </span>
                       </div>

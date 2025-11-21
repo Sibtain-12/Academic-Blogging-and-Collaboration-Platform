@@ -1,5 +1,25 @@
 const User = require('../models/User');
 
+// @desc    Get all users (admins and students)
+// @route   GET /api/users/all
+// @access  Private/Admin
+exports.getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find().select('-password');
+
+    res.status(200).json({
+      success: true,
+      count: users.length,
+      users,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 // @desc    Get all students
 // @route   GET /api/users
 // @access  Private/Admin

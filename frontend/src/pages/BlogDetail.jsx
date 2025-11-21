@@ -236,8 +236,8 @@ export default function BlogDetail() {
                   key={comment._id}
                   className="border-b border-gray-200 dark:border-gray-700 pb-4 last:border-0"
                 >
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
+                  <div className="flex justify-between items-start gap-4">
+                    <div className="flex-1 min-w-0">
                       <div className="flex items-center space-x-2 mb-2">
                         <span className="font-medium text-gray-900 dark:text-white">
                           {comment.author?.name}
@@ -246,12 +246,12 @@ export default function BlogDetail() {
                           {formatDate(comment.createdAt)}
                         </span>
                       </div>
-                      <p className="text-gray-700 dark:text-gray-300">{comment.text}</p>
+                      <p className="text-gray-700 dark:text-gray-300 break-words whitespace-pre-wrap">{comment.text}</p>
                     </div>
                     {canDeleteComment && (
                       <button
                         onClick={() => handleDeleteComment(comment._id)}
-                        className="text-red-600 hover:text-red-700 text-sm font-medium ml-4"
+                        className="text-red-600 hover:text-red-700 text-sm font-medium ml-4 flex-shrink-0"
                       >
                         Delete
                       </button>

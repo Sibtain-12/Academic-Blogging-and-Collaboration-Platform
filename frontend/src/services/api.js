@@ -33,6 +33,7 @@ export const authAPI = {
 
 // Users API
 export const usersAPI = {
+  getAllUsers: () => api.get('/users/all'),
   getStudents: () => api.get('/users'),
   deleteStudent: (id) => api.delete(`/users/${id}`),
   resetStudentPassword: (id, passwordData) => api.put(`/users/${id}/reset-password`, passwordData),
