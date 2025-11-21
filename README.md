@@ -21,7 +21,6 @@ The Academic Blogging and Collaboration Platform is a modern web application des
 - **Draft & Publish**: Save drafts and publish when ready
 - **Edit Published Blogs**: Modify published content anytime
 - **Blog Metadata**: Add title, project, tags, and descriptions
-- **Timestamp Management**: Separate tracking of creation, publication, and update times
 - **Status Tracking**: Draft and published status with proper filtering
 
 ### 🧮 Mathematical Support
