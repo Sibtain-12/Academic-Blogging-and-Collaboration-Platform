@@ -41,7 +41,6 @@ app.use('/api/blogs', require('./routes/blogs'));
 app.use('/api/comments', require('./routes/comments'));
 app.use('/api/dashboard', require('./routes/dashboard'));
 app.use('/api/upload', require('./routes/upload'));
-app.use('/api/admin', require('./routes/admin'));
 
 // Error handler
 app.use(errorHandler);

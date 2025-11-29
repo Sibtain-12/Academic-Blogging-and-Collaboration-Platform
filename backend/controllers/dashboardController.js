@@ -22,12 +22,6 @@ exports.getAdminStats = async (req, res) => {
       status: 'draft'
     });
 
-    // Admin's deleted blogs
-    const deletedBlogs = await Blog.countDocuments({
-      author: req.user.id,
-      status: 'deleted'
-    });
-
     // Total comments on admin's blogs
     const adminBlogs = await Blog.find({ author: req.user.id }).select('_id');
     const blogIds = adminBlogs.map((blog) => blog._id);
@@ -35,9 +29,6 @@ exports.getAdminStats = async (req, res) => {
 
     // Total comments made by admin
     const adminCommentsMade = await Comment.countDocuments({ author: req.user.id });
-
-    // Total students (for reference)
-    const totalStudents = await User.countDocuments({ role: 'student' });
 
     // Admin's own blogs (all statuses, sorted by most recent)
     const myBlogs = await Blog.find({ author: req.user.id })
@@ -61,10 +52,8 @@ exports.getAdminStats = async (req, res) => {
         totalBlogs,
         publishedBlogs,
         draftBlogs,
-        deletedBlogs,
         totalComments,
         adminCommentsMade,
-        totalStudents,
         myBlogs: blogsWithCommentCount,
       },
     });

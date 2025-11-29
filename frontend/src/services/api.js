@@ -47,7 +47,6 @@ export const blogsAPI = {
   createBlog: (blogData) => api.post('/blogs', blogData),
   updateBlog: (id, blogData) => api.put(`/blogs/${id}`, blogData),
   deleteBlog: (id) => api.delete(`/blogs/${id}`),
-  getDrafts: () => api.get('/blogs/drafts'),
 };
 
 // Comments API
@@ -72,12 +71,6 @@ export const uploadAPI = {
       },
     });
   },
-};
-
-// Admin API
-export const adminAPI = {
-  getStudentAnalytics: (params) => api.get('/admin/student-analytics', { params }),
-  getStudentBlogs: (studentId, params) => api.get(`/admin/student/${studentId}/blogs`, { params }),
 };
 
 export default api;

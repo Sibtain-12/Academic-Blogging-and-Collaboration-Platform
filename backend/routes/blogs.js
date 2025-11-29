@@ -6,11 +6,9 @@ const {
   createBlog,
   updateBlog,
   deleteBlog,
-  getDrafts,
 } = require('../controllers/blogController');
 const { protect } = require('../middleware/auth');
 
-router.get('/drafts', protect, getDrafts);
 router.get('/', protect, getBlogs);
 router.get('/:id', protect, getBlog);
 router.post('/', protect, createBlog);

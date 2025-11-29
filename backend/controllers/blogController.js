@@ -264,28 +264,3 @@ exports.deleteBlog = async (req, res) => {
   }
 };
 
-// @desc    Get user's draft blogs
-// @route   GET /api/blogs/drafts
-// @access  Private
-exports.getDrafts = async (req, res) => {
-  try {
-    const drafts = await Blog.find({
-      author: req.user.id,
-      status: 'draft',
-    })
-      .populate('author', 'name email')
-      .sort({ updatedAt: -1 });
-
-    res.status(200).json({
-      success: true,
-      count: drafts.length,
-      drafts,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
-
